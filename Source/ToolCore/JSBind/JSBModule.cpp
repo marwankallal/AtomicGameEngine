@@ -413,6 +413,8 @@ bool JSBModule::Load(const String& jsonFilename)
 {    
     ATOMIC_LOGINFOF("Loading Module: %s", jsonFilename.CString());
 
+	JSBind* jsbind = GetSubsystem<JSBind>();
+
     SharedPtr<File> jsonFile(new File(context_, jsonFilename));
 
     if (!jsonFile->IsOpen())
@@ -450,6 +452,17 @@ bool JSBModule::Load(const String& jsonFilename)
     {
         classnames_.Push(classes[i].GetString());
     }
+
+	if (jsbind->GetPlatformIsDesktop())
+	{
+		JSONArray classesDesktop = root.Get("classes_desktop").GetArray();
+
+		for (unsigned i = 0; i < classesDesktop.Size(); i++)
+		{
+			classnames_.Push(classesDesktop[i].GetString());
+		}
+
+	}
 
     JSONArray classesGeneric = root.Get("classes_generic").GetArray();
 
@@ -502,8 +515,7 @@ bool JSBModule::Load(const String& jsonFilename)
 
     if (name_ == "Graphics")
     {
-#ifdef _MSC_VER
-        JSBind* jsbind = GetSubsystem<JSBind>();
+#ifdef _MSC_VER        
         if (jsbind->GetPlatform() == "ANDROID" || jsbind->GetPlatform() == "WEB")
         {
             sourceDirs_.Push("Source/Atomic/Graphics/OpenGL");

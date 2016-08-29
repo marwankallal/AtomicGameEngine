@@ -13,9 +13,19 @@ file (GLOB CSHARP_BINDINGS_SOURCE ${CSATOMICDIR}/Atomic/Native/*.cpp ${CSATOMICD
                                   ${CSATOMICDIR}/AtomicApp/Native/*.cpp ${CSATOMICDIR}/AtomicApp/Native/*.h
                                   ${CSATOMICDIR}/AtomicPlayer/Native/*.cpp ${CSATOMICDIR}/AtomicPlayer/Native/*.h )
 
-file (GLOB_RECURSE SOURCE_FILES *.cpp *.h)
+file (GLOB SOURCE_FILES *.cpp *.h)
 
-add_library(AtomicNETNative SHARED ${SOURCE_FILES}  ${CSHARP_BINDINGS_SOURCE})
+if (NOT IOS AND NOT ANDROID AND NOT EMSCRIPTEN)
+    file (GLOB DESKTOP_SOURCE_FILES Desktop/*.cpp Desktop/*.h)
+    set (SOURCE_FILES ${SOURCE_FILES} ${DESKTOP_SOURCE_FILES})
+endif()
+
+if (ANDROID)
+	include_directories(${CMAKE_SOURCE_DIR}/Source/ThirdParty/SDL/include)
+	set (SOURCE_FILES ${SOURCE_FILES} ${CMAKE_SOURCE_DIR}/Source/ThirdParty/SDL/src/main/android/SDL_android_main.c)
+endif()
+
+add_library(AtomicNETNative SHARED ${SOURCE_FILES} ${CSHARP_BINDINGS_SOURCE})
 
 add_dependencies(AtomicNETNative AtomicToolCheckScripts)
 

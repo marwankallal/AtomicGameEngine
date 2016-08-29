@@ -46,12 +46,13 @@ public:
     bool GenerateJavaScriptBindings();
     bool GenerateCSharpBindings();
 
-    const String& GetSourceRootFolder() { return sourceRootFolder_; }
-    const String& GetPackageFolder() { return packageFolder_; }
-    const String& GetPlatform() { return platform_; }
+    const String& GetSourceRootFolder() const { return sourceRootFolder_; }
+    const String& GetPackageFolder() const { return packageFolder_; }
+    const String& GetPlatform() const { return platform_; }
+	bool GetPlatformIsDesktop() const { return platform_ != "ANDROID" && platform_ != "IOS" && platform_ != "WEB"; }
 
-    const String& GetDestScriptFolder() { return destScriptFolder_; }
-    const String& GetDestNativeFolder() { return destNativeFolder_; }
+    const String& GetDestScriptFolder() const { return destScriptFolder_; }
+    const String& GetDestNativeFolder() const { return destNativeFolder_; }
 
 private:
 
