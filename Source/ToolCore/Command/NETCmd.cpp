@@ -196,9 +196,8 @@ void NETCmd::Run()
     }
     else if (command_ == "genproject")
     {
-        SharedPtr<NETProjectGen> gen(new NETProjectGen(context_));
+        SharedPtr<NETProjectGen> gen(new NETProjectGen(context_, scriptPlatform_));
 
-        gen->SetScriptPlatform(scriptPlatform_);
         gen->LoadProject(projectFile_);
 
         gen->Generate();

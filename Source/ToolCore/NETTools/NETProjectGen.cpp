@@ -337,21 +337,44 @@ namespace ToolCore
 
     }
 
-    void NETCSProject::CreateReleasePropertyGroup(XMLElement &projectRoot)
-    {
-        XMLElement pgroup = projectRoot.CreateChild("PropertyGroup");
-        pgroup.SetAttribute("Condition", " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ");
+	void NETCSProject::CreateReleasePropertyGroup(XMLElement &projectRoot)
+	{
+		XMLElement pgroup = projectRoot.CreateChild("PropertyGroup");
+		pgroup.SetAttribute("Condition", " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ");
+		
+		pgroup.CreateChild("Optimize").SetValue("true");
+		pgroup.CreateChild("OutputPath").SetValue(assemblyOutputPath_ + "Release\\");
 
-        pgroup.CreateChild("DebugType").SetValue("full");
-        pgroup.CreateChild("Optimize").SetValue("true");
-        pgroup.CreateChild("OutputPath").SetValue(assemblyOutputPath_ + "Release\\");
+		Vector<String> constants;
+		constants.Push("TRACE");
 
-        pgroup.CreateChild("DefineConstants").SetValue("TRACE");
-        pgroup.CreateChild("ErrorReport").SetValue("prompt");
-        pgroup.CreateChild("WarningLevel").SetValue("4");
-        pgroup.CreateChild("ConsolePause").SetValue("false");
-        pgroup.CreateChild("AllowUnsafeBlocks").SetValue("true");
-        pgroup.CreateChild("PlatformTarget").SetValue("x64");
+		const Vector<String>& globalConstants = projectGen_->GetGlobalDefineConstants();
+		constants += globalConstants;
+
+		pgroup.CreateChild("DefineConstants").SetValue(String::Joined(constants, ";").CString());
+		pgroup.CreateChild("ErrorReport").SetValue("prompt");
+		pgroup.CreateChild("WarningLevel").SetValue("4");
+		pgroup.CreateChild("ConsolePause").SetValue("false");
+		pgroup.CreateChild("AllowUnsafeBlocks").SetValue("true");
+
+		if (projectGen_->IsDesktopPlatform())
+		{
+			pgroup.CreateChild("DebugType").SetValue("full");
+			pgroup.CreateChild("PlatformTarget").SetValue("x64");
+		}
+		else
+		{
+			pgroup.CreateChild("DebugType").SetValue("pdbonly");
+
+			if (projectGen_->GetScriptPlatform() == "ANDROID")
+			{
+				if (outputType_.ToLower() != "library")
+				{
+					pgroup.CreateChild("AndroidUseSharedRuntime").SetValue("False");
+					pgroup.CreateChild("AndroidLinkMode").SetValue("SdkOnly");
+				}
+			}
+		}
 
 #ifndef ATOMIC_PLATFORM_WINDOWS
         CreateCustomCommands(pgroup, "Release");
@@ -368,18 +391,58 @@ namespace ToolCore
         pgroup.CreateChild("DebugType").SetValue("full");
         pgroup.CreateChild("Optimize").SetValue("false");
         pgroup.CreateChild("OutputPath").SetValue(assemblyOutputPath_ + "Debug\\");
-        pgroup.CreateChild("DefineConstants").SetValue("DEBUG;TRACE");
+
+		Vector<String> constants;
+		constants.Push("DEBUG");
+		constants.Push("TRACE");
+
+		const Vector<String>& globalConstants = projectGen_->GetGlobalDefineConstants();
+		constants += globalConstants;
+
+        pgroup.CreateChild("DefineConstants").SetValue(String::Joined(constants, ";").CString());
+
         pgroup.CreateChild("ErrorReport").SetValue("prompt");
         pgroup.CreateChild("WarningLevel").SetValue("4");
         pgroup.CreateChild("ConsolePause").SetValue("false");
         pgroup.CreateChild("AllowUnsafeBlocks").SetValue("true");
-        pgroup.CreateChild("PlatformTarget").SetValue("x64");
+
+		if (projectGen_->IsDesktopPlatform())
+		{
+			pgroup.CreateChild("PlatformTarget").SetValue("x64");
+		}
+		else
+		{
+			if (projectGen_->GetScriptPlatform() == "ANDROID")
+			{
+				if (outputType_.ToLower() != "library")
+				{
+					pgroup.CreateChild("AndroidUseSharedRuntime").SetValue("True");
+					pgroup.CreateChild("AndroidLinkMode").SetValue("None");
+				}
+			}
+		}
 
 #ifndef ATOMIC_PLATFORM_WINDOWS
         CreateCustomCommands(pgroup, "Debug");
 #endif
 
     }
+
+	void NETCSProject::CreateAndroidItems(XMLElement &projectRoot)
+	{
+		// References
+
+		XMLElement igroup = projectRoot.CreateChild("ItemGroup");
+
+		XMLElement reference = igroup.CreateChild("Reference");		
+		reference.SetAttribute("Include", "Mono.Android");
+
+		reference = igroup.CreateChild("Reference");
+		reference.SetAttribute("Include", "mscorlib");
+
+		XMLElement import = projectRoot.CreateChild("Import");
+		import.SetAttribute("Project", "$(MSBuildExtensionsPath)\\Xamarin\\Android\\Xamarin.Android.CSharp.targets");
+	}
 
     void NETCSProject::CreateAssemblyInfo()
     {
@@ -441,11 +504,37 @@ namespace ToolCore
         XMLElement assemblyName = pgroup.CreateChild("AssemblyName");
         assemblyName.SetValue(assemblyName_);
 
-        // TargetFrameworkVersion
-        XMLElement targetFrameWork = pgroup.CreateChild("TargetFrameworkVersion");
-        targetFrameWork.SetValue("v4.6");
-
         pgroup.CreateChild("FileAlignment").SetValue("512");
+
+		if (projectGen_->IsDesktopPlatform())
+		{
+			pgroup.CreateChild("TargetFrameworkVersion").SetValue("v4.6");
+		}
+		else
+		{
+			pgroup.CreateChild("ProductVersion").SetValue("8.0.30703");
+			pgroup.CreateChild("SchemaVersion").SetValue("2.0");
+			pgroup.CreateChild("ProjectTypeGuids").SetValue("{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}");
+
+			pgroup.CreateChild("TargetFrameworkVersion").SetValue("v6.0");
+
+			if (projectGen_->GetScriptPlatform() == "ANDROID")
+			{				
+				pgroup.CreateChild("AndroidResgenFile").SetValue("Resources\\Resource.Designer.cs");
+				pgroup.CreateChild("AndroidUseLatestPlatformSdk").SetValue("True");
+
+				if (outputType_.ToLower() == "library")
+				{
+					pgroup.CreateChild("GenerateSerializationAssemblies").SetValue("Off");
+				}
+				else
+				{
+					pgroup.CreateChild("AndroidApplication").SetValue("true");
+					pgroup.CreateChild("AndroidManifest").SetValue("Properties\\AndroidManifest.xml");					
+				}
+				
+			}
+		}
 
     }
 
@@ -481,9 +570,16 @@ namespace ToolCore
         CreateProjectReferencesItemGroup(project);
         CreateCompileItemGroup(project);
         CreatePackagesItemGroup(project);
-        CreateAssemblyInfo();
 
-        project.CreateChild("Import").SetAttribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
+		if (projectGen_->GetScriptPlatform() == "ANDROID")
+		{
+			CreateAndroidItems(project);
+		}
+
+		if (projectGen_->IsDesktopPlatform())
+			project.CreateChild("Import").SetAttribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
+
+        CreateAssemblyInfo();
 
         Project* atomicProject = projectGen_->GetAtomicProject();
 
@@ -592,6 +688,14 @@ namespace ToolCore
         assemblySearchPaths_ = root["assemblySearchPaths"].GetString();
 
         ReplacePathStrings(assemblySearchPaths_);
+
+		const JSONArray& platforms = root["platforms"].GetArray();
+
+		for (unsigned i = 0; i < platforms.Size(); i++)
+		{
+			String platform = platforms[i].GetString();
+			platforms_.Push(platform);
+		}
 
         const JSONArray& references = root["references"].GetArray();
 
@@ -734,6 +838,9 @@ namespace ToolCore
         name_ = root["name"].GetString();
 
         outputPath_ = AddTrailingSlash(root["outputPath"].GetString());
+
+		outputPath_.AppendWithFormat("%s/", projectGen_->GetScriptPlatform().CString());
+
         ReplacePathStrings(outputPath_);
 
         // TODO: use poco mkdirs
@@ -753,8 +860,8 @@ namespace ToolCore
         return true;
     }
 
-    NETProjectGen::NETProjectGen(Context* context) : Object(context),
-        rewriteSolution_(false)
+    NETProjectGen::NETProjectGen(Context* context, const String& scriptPlatform) : Object(context),
+        rewriteSolution_(false), scriptPlatform_(scriptPlatform)
     {
 
     }
@@ -804,6 +911,15 @@ namespace ToolCore
 
     bool NETProjectGen::Generate()
     {
+		if (IsDesktopPlatform())
+			globalDefineConstants_.Push("ATOMIC_DESKTOP");
+
+		if (scriptPlatform_ == "ANDROID")
+			globalDefineConstants_.Push("ATOMIC_ANDROID");
+
+		if (scriptPlatform_ == "IOS")
+			globalDefineConstants_.Push("ATOMIC_IOS");
+
         solution_->Generate();
 
         for (unsigned i = 0; i < projects_.Size(); i++)
@@ -821,6 +937,35 @@ namespace ToolCore
         if (solution_.NotNull())
             solution_->SetRewriteSolution(rewrite);
     }
+
+	bool NETProjectGen::IncludeProjectOnPlatform(const JSONValue& projectRoot, const String& platform)
+	{
+		const JSONArray& platforms = projectRoot["platforms"].GetArray();
+
+		if (!platforms.Size())
+			return true; // all platforms
+
+		String scriptPlatform = platform.ToLower();
+
+		for (unsigned i = 0; i < platforms.Size(); i++)
+		{
+			String platform = platforms[i].GetString().ToLower();
+
+			if (platform == "desktop")
+			{
+				if (scriptPlatform == "windows" || scriptPlatform == "macosx" || scriptPlatform == "linux")
+					return true;
+
+				return false;
+			}
+
+			// TODO: We only filter desktop right now
+
+		}
+
+		return true;
+
+	}
 
     bool NETProjectGen::LoadProject(const JSONValue &root)
     {
@@ -840,6 +985,9 @@ namespace ToolCore
 
             if (!jproject.IsObject())
                 return false;
+
+			if (!IncludeProjectOnPlatform(jproject, scriptPlatform_))
+				continue;
 
             SharedPtr<NETCSProject> csProject(new NETCSProject(context_, this));
 
@@ -922,6 +1070,16 @@ namespace ToolCore
         
         return LoadProject(root);
     }
+
+	bool NETProjectGen::IsDesktopPlatform() const
+	{
+		String scriptPlatform = scriptPlatform_.ToLower();
+
+		if (scriptPlatform == "windows" || scriptPlatform == "macosx" || scriptPlatform == "linux")
+			return true;
+
+		return false;
+	}
 
     bool NETProjectGen::GetRequiresNuGet()
     {

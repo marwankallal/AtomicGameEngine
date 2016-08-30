@@ -209,9 +209,7 @@ namespace ToolCore
             return false;
         }
 
-        SharedPtr<NETProjectGen> gen(new NETProjectGen(context_));
-
-        gen->SetScriptPlatform("WINDOWS");
+        SharedPtr<NETProjectGen> gen(new NETProjectGen(context_, "WINDOWS"));
 
         if (!gen->LoadProject(project))
         {

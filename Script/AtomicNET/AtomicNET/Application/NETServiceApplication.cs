@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+#if ATOMIC_DESKTOP
+
 namespace AtomicEngine
 {
 
@@ -25,3 +27,5 @@ namespace AtomicEngine
     }
 
 }
+
+#endif

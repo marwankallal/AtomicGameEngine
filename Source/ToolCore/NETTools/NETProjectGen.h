@@ -85,6 +85,8 @@ namespace ToolCore
         void CreateDebugPropertyGroup(XMLElement &projectRoot);
         void CreateReleasePropertyGroup(XMLElement &projectRoot);
 
+		void CreateAndroidItems(XMLElement &projectRoot);
+
         void CreateCustomCommands(XMLElement &propertyGroup, const String& cfg);
 
         void CreateAssemblyInfo();
@@ -103,9 +105,10 @@ namespace ToolCore
 
         XMLElement xmlRoot_;
 
+		Vector<String> platforms_;
         Vector<String> references_;
         Vector<String> packages_;
-        Vector<String> sourceFolders_;
+        Vector<String> sourceFolders_;		
     };
 
     class NETSolution : public NETProjectBase
@@ -151,10 +154,12 @@ namespace ToolCore
 
     public:
 
-        NETProjectGen(Context* context);
+        NETProjectGen(Context* context, const String& scriptPlatform);
         virtual ~NETProjectGen();
 
         const String& GetScriptPlatform() { return scriptPlatform_; }
+
+		bool IsDesktopPlatform() const;
 
         NETSolution* GetSolution() { return solution_; }
 
@@ -165,8 +170,6 @@ namespace ToolCore
         NETCSProject* GetCSProjectByName(const String& name);
 
         bool GetCSProjectDependencies(NETCSProject * source, PODVector<NETCSProject*>& depends) const;
-
-        void SetScriptPlatform(const String& platform) { scriptPlatform_ = platform; }
 
         bool Generate();
 
@@ -182,7 +185,13 @@ namespace ToolCore
         bool LoadProject(const String& projectPath);
         bool LoadProject(Project* project);
 
+		void AddGlobalDefineConstant(const String& constant) { globalDefineConstants_.Push(constant); }
+		const Vector<String>& GetGlobalDefineConstants() const { return globalDefineConstants_; }
+
     private:
+
+		/// Returns true if a project is included on the specifed platform
+		bool IncludeProjectOnPlatform(const JSONValue& projectRoot, const String& platform);
 
         // if true, the solution (sln) file will be recreated if it exists
         bool rewriteSolution_;
@@ -191,6 +200,7 @@ namespace ToolCore
 
         SharedPtr<Project> atomicProject_;
         SharedPtr<NETSolution> solution_;
+		Vector<String> globalDefineConstants_;
         Vector<SharedPtr<NETCSProject>> projects_;
 
     };

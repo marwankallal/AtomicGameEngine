@@ -64,7 +64,11 @@ namespace AtomicEngine
             PhysicsModule.Initialize();
             EnvironmentModule.Initialize();
             UIModule.Initialize();
+
+#if ATOMIC_DESKTOP
             IPCModule.Initialize();
+#endif
+
             AtomicAppModule.Initialize();
             ScriptModule.Initialize();
 

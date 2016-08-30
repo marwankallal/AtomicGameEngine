@@ -214,9 +214,7 @@ namespace ToolCore
             }
             else if (ext == ".json")
             {
-                SharedPtr<NETProjectGen> gen(new NETProjectGen(context_));
-
-                gen->SetScriptPlatform(curBuild_->platform_);
+                SharedPtr<NETProjectGen> gen(new NETProjectGen(context_, curBuild_->platform_));
 
                 if (!gen->LoadProject(solutionPath))
                 {
