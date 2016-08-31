@@ -108,7 +108,12 @@ namespace ToolCore
 		Vector<String> platforms_;
         Vector<String> references_;
         Vector<String> packages_;
-        Vector<String> sourceFolders_;		
+        Vector<String> sourceFolders_;
+
+		Vector<String> projectTypeGuids_;
+		Vector<String> importProjects_;
+		Vector<String> libraryProjectZips_;
+		Vector<String> transformFiles_;
     };
 
     class NETSolution : public NETProjectBase

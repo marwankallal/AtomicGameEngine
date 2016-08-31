@@ -48,6 +48,26 @@
       ]
     },
     {
+      "name": "AtomicAndroidSDL",
+      "platforms" : ["android"],
+      "outputType" : "Library",
+      "rootNamespace" : "AtomicAndroidSDL",
+      "assemblyName" : "AtomicAndroidSDL",
+      "projectTypeGuids" : ["10368E6C-D01B-4462-8E8B-01FC667A7035", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"],
+      "importProjects" : ["$(MSBuildExtensionsPath)\\Xamarin\\Android\\Xamarin.Android.Bindings.targets"],
+      "libraryProjectZips" : ["$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/JavaSDL/build/outputs/aar/atomicjavasdl-debug.aar"],
+      "transformFiles" : ["$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/JavaSDL/Metadata.xml"],
+      "assemblyOutputPath" : "..\\..\\",
+      "references" : [
+        "Mono.Android",
+        "System",
+        "System.Core"
+      ],
+      "sources" : [
+        "$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/"
+      ]
+    },
+    {
       "name": "ComponentTest",
       "platforms" : ["desktop"],
       "outputType" : "Library",
@@ -99,6 +119,6 @@
     "sources" : [
       "$ATOMIC_ROOT$/Script/AtomicNET/AtomicPlayer/"
     ]
-  }
+}
   ]
 }

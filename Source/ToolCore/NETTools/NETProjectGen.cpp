@@ -430,18 +430,49 @@ namespace ToolCore
 
 	void NETCSProject::CreateAndroidItems(XMLElement &projectRoot)
 	{
-		// References
+		
+		if (!libraryProjectZips_.Size())
+		{
 
-		XMLElement igroup = projectRoot.CreateChild("ItemGroup");
+			XMLElement igroup = projectRoot.CreateChild("ItemGroup");
 
-		XMLElement reference = igroup.CreateChild("Reference");		
-		reference.SetAttribute("Include", "Mono.Android");
+			XMLElement reference = igroup.CreateChild("Reference");
+			reference.SetAttribute("Include", "Mono.Android");
 
-		reference = igroup.CreateChild("Reference");
-		reference.SetAttribute("Include", "mscorlib");
+			reference = igroup.CreateChild("Reference");
+			reference.SetAttribute("Include", "mscorlib");
+		}
 
-		XMLElement import = projectRoot.CreateChild("Import");
-		import.SetAttribute("Project", "$(MSBuildExtensionsPath)\\Xamarin\\Android\\Xamarin.Android.CSharp.targets");
+		if (libraryProjectZips_.Size())
+		{
+			XMLElement libraryGroup = projectRoot.CreateChild("ItemGroup");
+
+			for (unsigned i = 0; i < libraryProjectZips_.Size(); i++)
+			{
+				libraryGroup.CreateChild("LibraryProjectZip").SetAttribute("Include", libraryProjectZips_[i].CString());
+			}
+		}
+
+		if (transformFiles_.Size())
+		{
+			XMLElement transformGroup = projectRoot.CreateChild("ItemGroup");
+
+			for (unsigned i = 0; i < transformFiles_.Size(); i++)
+			{
+				transformGroup.CreateChild("TransformFile").SetAttribute("Include", transformFiles_[i].CString());
+			}
+		}
+
+		if (!importProjects_.Size())
+		{
+			projectRoot.CreateChild("Import").SetAttribute("Project", "$(MSBuildExtensionsPath)\\Xamarin\\Android\\Xamarin.Android.CSharp.targets");
+		}
+
+		for (unsigned i = 0; i < importProjects_.Size(); i++)
+		{
+			projectRoot.CreateChild("Import").SetAttribute("Project", importProjects_[i].CString());
+		}
+
 	}
 
     void NETCSProject::CreateAssemblyInfo()
@@ -506,6 +537,11 @@ namespace ToolCore
 
         pgroup.CreateChild("FileAlignment").SetValue("512");
 
+		if (projectTypeGuids_.Size())
+		{
+			pgroup.CreateChild("ProjectTypeGuids").SetValue(String::Joined(projectTypeGuids_, ";"));
+		}
+
 		if (projectGen_->IsDesktopPlatform())
 		{
 			pgroup.CreateChild("TargetFrameworkVersion").SetValue("v4.6");
@@ -514,18 +550,25 @@ namespace ToolCore
 		{
 			pgroup.CreateChild("ProductVersion").SetValue("8.0.30703");
 			pgroup.CreateChild("SchemaVersion").SetValue("2.0");
-			pgroup.CreateChild("ProjectTypeGuids").SetValue("{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}");
-
+			
 			pgroup.CreateChild("TargetFrameworkVersion").SetValue("v6.0");
 
 			if (projectGen_->GetScriptPlatform() == "ANDROID")
 			{				
+
+				if (!projectTypeGuids_.Size())
+				{
+					pgroup.CreateChild("ProjectTypeGuids").SetValue("{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}");
+				}
+
 				pgroup.CreateChild("AndroidResgenFile").SetValue("Resources\\Resource.Designer.cs");
 				pgroup.CreateChild("AndroidUseLatestPlatformSdk").SetValue("True");
 
 				if (outputType_.ToLower() == "library")
 				{
-					pgroup.CreateChild("GenerateSerializationAssemblies").SetValue("Off");
+					// 10368E6C-D01B-4462-8E8B-01FC667A7035 is a binding library
+					if (!projectTypeGuids_.Contains("{10368E6C-D01B-4462-8E8B-01FC667A7035}"))
+						pgroup.CreateChild("GenerateSerializationAssemblies").SetValue("Off");
 				}
 				else
 				{
@@ -731,6 +774,39 @@ namespace ToolCore
             ReplacePathStrings(source);
             sourceFolders_.Push(AddTrailingSlash(source));
         }
+
+		const JSONArray& projectTypeGuids = root["projectTypeGuids"].GetArray();
+
+		for (unsigned i = 0; i < projectTypeGuids.Size(); i++)
+		{
+			String guid = projectTypeGuids[i].GetString();
+			projectTypeGuids_.Push(ToString("{%s}", guid.CString()));
+		}
+
+		const JSONArray& importProjects = root["importProjects"].GetArray();
+
+		for (unsigned i = 0; i < importProjects.Size(); i++)
+		{
+			importProjects_.Push(importProjects[i].GetString());
+		}
+
+		const JSONArray& libraryProjectZips = root["libraryProjectZips"].GetArray();
+
+		for (unsigned i = 0; i < libraryProjectZips.Size(); i++)
+		{
+			String zipPath = libraryProjectZips[i].GetString();
+			ReplacePathStrings(zipPath);
+			libraryProjectZips_.Push(zipPath);
+		}
+
+		const JSONArray& transformFiles = root["transformFiles"].GetArray();
+
+		for (unsigned i = 0; i < transformFiles.Size(); i++)
+		{
+			String transformFile = transformFiles[i].GetString();
+			ReplacePathStrings(transformFile);
+			transformFiles_.Push(transformFile);
+		}
 
         return true;
     }
