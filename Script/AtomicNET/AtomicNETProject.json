@@ -5,22 +5,33 @@
   },
   "projects" : [
     {
+    "name": "AtomicNET.Shared",
+    "outputType" : "Shared",
+    "sources" : [
+      "$ATOMIC_ROOT$/Script/AtomicNET/AtomicNETCore/",
+      "$ATOMIC_ROOT$/Script/AtomicNET/AtomicNET/",
+      "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/Atomic/Managed/",
+      "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/AtomicNETScript/Managed/",
+      "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/AtomicNETNative/Managed/",
+      "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/AtomicApp/Managed/",
+      "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/AtomicPlayer/Managed/"
+    ]
+    },
+    {
       "name": "AtomicNET",
       "outputType" : "Library",
       "rootNamespace" : "AtomicEngine",
       "assemblyName" : "AtomicNET",
-      "assemblyOutputPath" : "..\\..\\",
+      "assemblyOutputPath" : "..\\..\\..\\Common\\",
+      "projectTypeGuids" : ["786C830F-07A1-408B-BD7F-6EE04809D6DB", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"],
+      "targetFrameworkProfile" : "Profile111",
       "references" : [
-        "System", "System.Core" , "System.Xml.Linq", "System.XML"
       ],
+      "sharedReferences" : [
+        "AtomicNET.Shared"
+      ],
+      "importProjects" : ["$(MSBuildExtensionsPath32)\\Microsoft\\Portable\\$(TargetFrameworkVersion)\\Microsoft.Portable.CSharp.targets"],
       "sources" : [
-        "$ATOMIC_ROOT$/Script/AtomicNET/AtomicNETCore/",
-        "$ATOMIC_ROOT$/Script/AtomicNET/AtomicNET/",
-        "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/Atomic/Managed/",
-        "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/AtomicNETScript/Managed/",
-        "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/AtomicNETNative/Managed/",
-        "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/AtomicApp/Managed/",
-        "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/$SCRIPT_PLATFORM$/CSharp/Packages/AtomicPlayer/Managed/"
       ]
     },
     {
@@ -29,7 +40,7 @@
       "outputType" : "Exe",
       "rootNamespace" : "AtomicTools",
       "assemblyName" : "AtomicNETService",
-      "assemblyOutputPath" : "..\\..\\",
+      "assemblyOutputPath" : "..\\..\\..\\$SCRIPT_PLATFORM$\\",
       "references" : [
         "System",
         "<Reference Include=\"System.Collections.Immutable, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL\"><HintPath>..\\packages\\System.Collections.Immutable.1.2.0\\lib\\portable-net45+win8+wp8+wpa81\\System.Collections.Immutable.dll</HintPath><Private>True</Private></Reference>",
@@ -57,14 +68,59 @@
       "importProjects" : ["$(MSBuildExtensionsPath)\\Xamarin\\Android\\Xamarin.Android.Bindings.targets"],
       "libraryProjectZips" : ["$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/JavaSDL/build/outputs/aar/atomicjavasdl-debug.aar"],
       "transformFiles" : ["$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/JavaSDL/Metadata.xml"],
-      "assemblyOutputPath" : "..\\..\\",
+      "assemblyOutputPath" : "..\\..\\..\\$SCRIPT_PLATFORM$\\",
       "references" : [
         "Mono.Android",
         "System",
         "System.Core"
       ],
       "sources" : [
+      ]
+    },
+    {
+      "name": "AtomicNET.Android",
+      "platforms" : ["android"],
+      "outputType" : "Library",
+      "defineConstants" : ["ATOMIC_ANDROID"],
+      "rootNamespace" : "AtomicGameEngine",
+      "assemblyName" : "AtomicGameEngine",
+      "assemblyOutputPath" : "..\\..\\..\\$SCRIPT_PLATFORM$\\",
+      "references" : [
+        "Mono.Android",
+        "System",
+        "System.Core",
+        "System.Runtime",
+        "System.Xml.Linq",
+        "System.Xml",
+        "AtomicAndroidSDL",
+        "AtomicNET"
+      ],
+      "sharedReferences" : [
+        "AtomicNET.Shared"
+      ],      
+      "sources" : [
         "$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/"
+      ]
+    },
+    {
+      "name": "AtomicNET.Desktop",
+      "platforms" : ["desktop"],
+      "outputType" : "Library",
+      "defineConstants" : ["ATOMIC_DESKTOP"],
+      "rootNamespace" : "AtomicGameEngine",
+      "assemblyName" : "AtomicGameEngine",
+      "assemblyOutputPath" : "..\\..\\..\\$SCRIPT_PLATFORM$\\",
+      "references" : [
+        "System",
+        "System.Core",
+        "System.Runtime",
+        "System.Xml.Linq",
+        "System.Xml"
+      ],
+      "sharedReferences" : [
+        "AtomicNET.Shared"
+      ],
+      "sources" : [
       ]
     },
     {
@@ -73,7 +129,7 @@
       "outputType" : "Library",
       "rootNamespace" : "ComponentTest",
       "assemblyName" : "ComponentTest",
-      "assemblyOutputPath" : "..\\..\\",
+      "assemblyOutputPath" : "..\\..\\..\\$SCRIPT_PLATFORM$\\",
       "references" : [
         "System",
         "System.Core" ,
@@ -91,7 +147,7 @@
       "outputType" : "Exe",
       "rootNamespace" : "AtomicIPCPlayer",
       "assemblyName" : "AtomicIPCPlayer",
-      "assemblyOutputPath" : "..\\..\\",
+      "assemblyOutputPath" : "..\\..\\..\\$SCRIPT_PLATFORM$\\",
       "references" : [
         "System",
         "System.Core" ,
@@ -109,7 +165,7 @@
     "outputType" : "Exe",
     "rootNamespace" : "AtomicPlayer",
     "assemblyName" : "AtomicPlayer",
-    "assemblyOutputPath" : "..\\..\\",
+    "assemblyOutputPath" : "..\\..\\..\\$SCRIPT_PLATFORM$\\",
     "references" : [
       "System",
       "System.Core" ,

@@ -625,8 +625,8 @@ void CSFunctionWriter::WriteManagedConstructor(String& source)
     source += IndentLine(ToString("var classType = typeof(%s);\n", klass->GetName().CString()));
     source += IndentLine("var thisType = this.GetType();\n");
     source += IndentLine("var nativeThisType = NativeCore.IsNativeType(thisType);\n");    
-    source += IndentLine("var nativeBaseType = NativeCore.IsNativeType(thisType.BaseType);\n");
-    source += IndentLine("if ( (nativeThisType && (thisType == classType)) || (!nativeThisType && (nativeBaseType && (thisType.BaseType == classType))))\n");
+    source += IndentLine("var nativeBaseType = NativeCore.IsNativeType(thisType.GetTypeInfo().BaseType);\n");
+    source += IndentLine("if ( (nativeThisType && (thisType == classType)) || (!nativeThisType && (nativeBaseType && (thisType.GetTypeInfo().BaseType == classType))))\n");
     source += IndentLine("{\n");
 
     Indent();

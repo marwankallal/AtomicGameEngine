@@ -56,6 +56,8 @@ namespace ToolCore
 
     class NETCSProject : public NETProjectBase
     {
+		friend class NETSolution;
+
         ATOMIC_OBJECT(NETCSProject, NETProjectBase)
 
     public:
@@ -71,9 +73,17 @@ namespace ToolCore
         const Vector<String>& GetReferences() const { return references_; }
         const Vector<String>& GetPackages() const { return packages_; }
 
+		bool GetIsPCL() const { return projectTypeGuids_.Contains("{786C830F-07A1-408B-BD7F-6EE04809D6DB}"); }
+
         bool Generate();
 
     private:
+
+		// Portable Class Library
+		bool GenerateShared();
+
+		bool GenerateStandard();
+
 
         bool CreateProjectFolder(const String& path);
 
@@ -110,10 +120,15 @@ namespace ToolCore
         Vector<String> packages_;
         Vector<String> sourceFolders_;
 
+		Vector<String> defineConstants_;
+
 		Vector<String> projectTypeGuids_;
 		Vector<String> importProjects_;
 		Vector<String> libraryProjectZips_;
 		Vector<String> transformFiles_;
+
+		String targetFrameworkProfile_;
+		Vector<String> sharedReferences_;
     };
 
     class NETSolution : public NETProjectBase

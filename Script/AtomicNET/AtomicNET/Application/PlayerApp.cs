@@ -24,10 +24,14 @@ namespace AtomicEngine
             AtomicNET.RegisterSubsystem("ResourceCache");
             AtomicNET.Cache = AtomicNET.GetSubsystem<ResourceCache>();
 
+#if ATOMIC_DESKTOP
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.AssemblyResolve += new ResolveEventHandler(AtomicResolveEventHandler);
+#endif
 
         }
+
+#if ATOMIC_DESKTOP
 
         // Resolve assemblies from Resource directories at runtime (todo, assemblies in package files?)
         static private Assembly AtomicResolveEventHandler(object sender, ResolveEventArgs args)
@@ -57,9 +61,11 @@ namespace AtomicEngine
             return null;
 
         }
+#endif
 
         protected static void ExecuteAtomicMain(string[] args)
         {
+#if ATOMIC_DESKTOP
             String projectAssemblyPath;
 
             if (!DeployedApp)
@@ -101,7 +107,7 @@ namespace AtomicEngine
 
             Object[] parms = new Object[1] { args };
             method.Invoke(null, parms);
-
+#endif
         }
 
     }

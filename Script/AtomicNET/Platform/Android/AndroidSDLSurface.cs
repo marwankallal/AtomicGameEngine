@@ -1,0 +1,179 @@
+/*
+Copyright(c) 2015 Xamarin Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+using System;
+using System.Runtime.InteropServices;
+using System.Threading;
+using Android.App;
+using Android.Content;
+using Android.Util;
+using Android.Views;
+using Java.Lang;
+using Org.Libsdl.App;
+
+namespace AtomicEngine
+{
+
+    /// <summary>
+    /// A controller that provides a SDLSurface that can be used in any activity.
+    /// Make sure you handle these events in your Activity:
+    /// - OnResume
+    /// - OnPause
+    /// - OnLowMemory
+    /// - OnDestroy
+    /// - DispatchKeyEvent
+    /// - OnWindowFocusChanged
+    /// </summary>
+    public class AndroidSDLSurface : IAtomicSDLSurface
+    {
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int SdlCallback(IntPtr context);
+
+        [DllImport(Constants.LIBNAME, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void RegisterSdlLauncher(SdlCallback callback);
+
+        public SDLSurface SdlSurface { get; set; }
+
+        AndroidSDLSurface(SDLSurface sdlSurface)
+        {
+            SdlSurface = sdlSurface;
+        }
+
+        public void Remove()
+        {
+            var vg = SdlSurface?.Parent as ViewGroup;
+            if (SdlSurface != null && vg != null)
+            {
+                //vg.RemoveView(SdlSurface);
+                SdlSurface.Enabled = false;
+                SdlSurface.Visibility = ViewStates.Gone;
+            }
+        }
+
+        public bool IsAlive => SDLActivity.MIsSurfaceReady;
+
+        /*
+
+        /// <summary>
+        /// Creates a view (SurfaceView) that can be added anywhere
+        /// </summary>
+        public static SDLSurface CreateSurface<TApplication>(Activity activity, ApplicationOptions options = null, bool finishActivtiyOnExit = false) where TApplication : Application
+        {
+            return CreateSurface(activity, typeof(TApplication), options, finishActivtiyOnExit);
+        }
+
+        /// <summary>
+        /// Creates a view (SurfaceView) that can be added anywhere
+        /// </summary>
+        public static SDLSurface CreateSurface(Activity activity, Type appType, ApplicationOptions options = null, bool finishActivtiyOnExit = false)
+        {
+            return CreateSurface(activity, () => Application.CreateInstance(appType, options), finishActivtiyOnExit);
+        }
+
+        */
+
+        /// <summary>
+        /// Creates a view (SurfaceView) that can be added anywhere
+        /// </summary>
+        public static SDLSurface CreateSurface(Activity activity, Func<Application> applicationFactory, bool finishActivtiyOnExit = false)
+        {
+            var surface = SDLActivity.CreateSurface(activity);
+            SetSdlMain(applicationFactory, finishActivtiyOnExit, surface);
+            return surface;
+        }
+
+        public static void OnResume()
+        {
+            SDLActivity.OnResume();
+        }
+
+        public static void OnPause()
+        {
+            SDLActivity.OnPause();
+        }
+
+        public static void OnLowMemory()
+        {
+            SDLActivity.OnLowMemory();
+        }
+
+        public static void OnDestroy()
+        {
+            SDLActivity.OnDestroy();
+        }
+
+        public static bool DispatchKeyEvent(KeyEvent keyEvent)
+        {
+            return SDLActivity.DispatchKeyEvent(keyEvent);
+        }
+
+        public static void OnWindowFocusChanged(bool focus)
+        {
+            SDLActivity.OnWindowFocusChanged(focus);
+        }
+
+        /*
+
+        /// <summary>
+        /// The simpliest way to launch a game. It opens a special full-screen activity
+        /// </summary>
+        public static void RunInActivity<TApplication>(ApplicationOptions options = null) where TApplication : Application
+        {
+            RunInActivity(typeof(TApplication), options);
+        }
+
+        /// <summary>
+        /// The simpliest way to launch a game. It opens a special full-screen activity
+        /// </summary>
+        public static void RunInActivity(Type appType, ApplicationOptions options = null)
+        {
+            RunInActivity(() => Application.CreateInstance(appType, options));
+        }
+
+    */
+
+        /// <summary>
+        /// The simpliest way to launch a game. It opens a special full-screen activity
+        /// </summary>
+        public static void RunInActivity(Func<Application> applicationFactory)
+        {
+            SetSdlMain(applicationFactory, true, null);
+            var context = Android.App.Application.Context;
+            var intent = new Intent(context, typeof(Org.Libsdl.App.AtomicActivity));
+            intent.AddFlags(ActivityFlags.NewTask);
+            context.StartActivity(intent);
+        }
+
+        static void SetSdlMain(Func<Application> applicationFactory, bool finishActivityOnExit, SDLSurface surface)
+        {
+            SDLActivity.FinishActivityOnNativeExit = finishActivityOnExit;
+            RegisterSdlLauncher(_ => {
+                //var app = applicationFactory();
+                // app.AtomicSurface = new AndroidSDLSurface(surface);
+                //var code = app.Run();                
+                //return code;
+                return 0;
+            });
+        }
+    }
+}

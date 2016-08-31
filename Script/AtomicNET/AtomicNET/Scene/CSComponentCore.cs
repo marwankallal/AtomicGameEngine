@@ -10,6 +10,8 @@ namespace AtomicEngine
     {
         public CSComponentInfo(Type type)
         {
+
+#if ATOMIC_DESKTOP
             this.Type = type;
 
             // Fields
@@ -36,12 +38,15 @@ namespace AtomicEngine
 
             Type[] startParms = new Type[0] { };
             StartMethod = type.GetMethod("Start", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, Type.DefaultBinder, startParms, null);
+#endif
 
         }
 
         public void ApplyFieldValues(CSComponent component, IntPtr fieldValuePtr)
         {
             // FIXME: This will need to be optimized, specifically to use uint key hashes for value lookup
+
+#if ATOMIC_DESKTOP
 
             fieldMap.CopyVariantMap(fieldValuePtr);
 
@@ -98,6 +103,8 @@ namespace AtomicEngine
                     }
                 }
             }
+
+#endif
 
         }
 
@@ -314,6 +321,8 @@ namespace AtomicEngine
 
         void HandleComponentAssemblyReference(uint eventType, ScriptVariantMap eventData)
         {
+#if ATOMIC_DESKTOP
+
             string assemblyPath = eventData["AssemblyPath"];
 
             Dictionary<string, CSComponentInfo> assemblyTypes = null;
@@ -342,6 +351,7 @@ namespace AtomicEngine
                     assemblyTypes[type.Name] = csinfo;
                 }
             }
+#endif
         }
 
         internal static void Initialize()

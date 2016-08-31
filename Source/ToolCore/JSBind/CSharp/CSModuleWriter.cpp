@@ -416,7 +416,7 @@ void CSModuleWriter::GenerateManagedSource()
 
     String moduleName = module_->GetPackage()->GetNamespace();
 
-    source += "\nusing System;\nusing System.Collections.Generic;\nusing System.Runtime.InteropServices;\n";
+    source += "\nusing System;\nusing System.Collections.Generic;\nusing System.Runtime.InteropServices;\nusing static System.Reflection.IntrospectionExtensions;\n";
 
     if (moduleName == "Atomic")
         moduleName = "AtomicEngine";

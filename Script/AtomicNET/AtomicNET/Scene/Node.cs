@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using static System.Reflection.IntrospectionExtensions;
 
 namespace AtomicEngine
 {
@@ -12,7 +13,7 @@ namespace AtomicEngine
         {
             var type = typeof(T);
 
-            if (type.IsSubclassOf(typeof(CSComponent)))
+            if (type.GetTypeInfo().IsSubclassOf(typeof(CSComponent)))
             {
                 Component component = (Component)Activator.CreateInstance(type);
                 CSComponentCore.RegisterInstance((CSComponent) component);
@@ -28,7 +29,7 @@ namespace AtomicEngine
 			var type = typeof(T);
 
 			// If we're a CSComponent, get "CSComponents" native side and filter here
-			if (type.IsSubclassOf(typeof(CSComponent)))
+			if (type.GetTypeInfo().IsSubclassOf(typeof(CSComponent)))
 			{
 				Vector<Node> temp = new Vector<Node>();
 
