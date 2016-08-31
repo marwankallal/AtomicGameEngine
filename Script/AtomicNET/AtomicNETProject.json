@@ -105,6 +105,7 @@
   },
   {
     "name": "AtomicPlayer",
+    "platforms" : ["desktop"],
     "outputType" : "Exe",
     "rootNamespace" : "AtomicPlayer",
     "assemblyName" : "AtomicPlayer",
