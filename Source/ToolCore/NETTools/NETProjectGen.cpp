@@ -959,7 +959,8 @@ namespace ToolCore
 				return false;
 			}
 
-			// TODO: We only filter desktop right now
+			if (platform == "android" && scriptPlatform != "android")
+				return false;
 
 		}
 
