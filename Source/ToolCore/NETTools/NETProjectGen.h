@@ -102,6 +102,9 @@ namespace ToolCore
         void CreateAssemblyInfo();
         void GetAssemblySearchPaths(String& paths);
 
+		bool SupportsDesktop() const;
+		bool SupportsPlatform(const String& platform, bool explicitCheck = true) const;
+
         String name_;
         String projectGuid_;
         String outputType_;
@@ -174,12 +177,8 @@ namespace ToolCore
 
     public:
 
-        NETProjectGen(Context* context, const String& scriptPlatform);
+        NETProjectGen(Context* context);
         virtual ~NETProjectGen();
-
-        const String& GetScriptPlatform() { return scriptPlatform_; }
-
-		bool IsDesktopPlatform() const;
 
         NETSolution* GetSolution() { return solution_; }
 
@@ -215,8 +214,6 @@ namespace ToolCore
 
         // if true, the solution (sln) file will be recreated if it exists
         bool rewriteSolution_;
-
-        String scriptPlatform_;
 
         SharedPtr<Project> atomicProject_;
         SharedPtr<NETSolution> solution_;

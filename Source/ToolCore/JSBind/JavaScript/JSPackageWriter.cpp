@@ -212,17 +212,14 @@ void JSPackageWriter::PostProcess()
 
     JSBind* jsbind = package_->GetSubsystem<JSBind>();
 
-    if (jsbind->GetPlatform() == "MACOSX" || jsbind->GetPlatform() == "WINDOWS" || jsbind->GetPlatform() == "LINUX")
-    {
-        JSBDoc jdoc;
-        jdoc.Emit(package_, jsbind->GetSourceRootFolder() + "Artifacts/Build/JSDoc/" + package_->GetName() + ".js");
+    JSBDoc jdoc;
+    jdoc.Emit(package_, jsbind->GetSourceRootFolder() + "Artifacts/Build/JSDoc/" + package_->GetName() + ".js");
 
-        JSBTypeScript ts;
-        ts.Emit(package_, jsbind->GetSourceRootFolder() + "Script/TypeScript/" + package_->GetName() + ".d.ts");
+    JSBTypeScript ts;
+    ts.Emit(package_, jsbind->GetSourceRootFolder() + "Script/TypeScript/" + package_->GetName() + ".d.ts");
 
-        JSBHaxe hx;
-        hx.Emit(package_, jsbind->GetSourceRootFolder() + "Script/Haxe/" + package_->GetName() + ".hx");
-    }
+    JSBHaxe hx;
+    hx.Emit(package_, jsbind->GetSourceRootFolder() + "Script/Haxe/" + package_->GetName() + ".hx");
 
 }
 

@@ -41,15 +41,13 @@ public:
     JSBind(Context* context);
     virtual ~JSBind();
 
-    bool LoadPackage(const String& sourceRootFolder, const String& packageFolder, const String& platform);
+    bool LoadPackage(const String& sourceRootFolder, const String& packageFolder);
 
     bool GenerateJavaScriptBindings();
     bool GenerateCSharpBindings();
 
     const String& GetSourceRootFolder() const { return sourceRootFolder_; }
     const String& GetPackageFolder() const { return packageFolder_; }
-    const String& GetPlatform() const { return platform_; }
-	bool GetPlatformIsDesktop() const { return platform_ != "ANDROID" && platform_ != "IOS" && platform_ != "WEB"; }
 
     const String& GetDestScriptFolder() const { return destScriptFolder_; }
     const String& GetDestNativeFolder() const { return destNativeFolder_; }
@@ -60,7 +58,6 @@ private:
 
     String sourceRootFolder_;
     String packageFolder_;
-    String platform_;
 
     String destScriptFolder_;
     String destNativeFolder_;

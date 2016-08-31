@@ -5,7 +5,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_SOURCE_DIR}/Source/ThirdParty/FreeType/include
                     ${CMAKE_SOURCE_DIR}/Source/ThirdParty/Box2D)
 
-set (CSATOMICDIR "${CMAKE_SOURCE_DIR}/Artifacts/Build/Source/Generated/${JAVASCRIPT_BINDINGS_PLATFORM}/CSharp/Packages/")
+set (CSATOMICDIR "${CMAKE_SOURCE_DIR}/Artifacts/Build/Source/Generated/CSharp/Packages/")
 
 file (GLOB CSHARP_BINDINGS_SOURCE ${CSATOMICDIR}/Atomic/Native/*.cpp ${CSATOMICDIR}/Atomic/Native/*.h
                                   ${CSATOMICDIR}/AtomicNETNative/Native/*.cpp ${CSATOMICDIR}/AtomicNETNative/Native/*.h

@@ -65,18 +65,10 @@ bool NETCmd::Parse(const Vector<String>& arguments, unsigned startIndex, String&
     if (command_ == "genproject")
     {
         projectFile_ = startIndex + 2 < arguments.Size() ? arguments[startIndex + 2] : String::EMPTY;
-        scriptPlatform_ = startIndex + 3 < arguments.Size() ? arguments[startIndex + 3] : String::EMPTY;
 
         if (!projectFile_.Length())
         {
             errorMsg = "Unable to parse project file";
-            return false;
-        }
-
-
-        if (!scriptPlatform_.Length())
-        {
-            errorMsg = "Unable to parse script platform";
             return false;
         }
             
@@ -196,7 +188,7 @@ void NETCmd::Run()
     }
     else if (command_ == "genproject")
     {
-        SharedPtr<NETProjectGen> gen(new NETProjectGen(context_, scriptPlatform_));
+        SharedPtr<NETProjectGen> gen(new NETProjectGen(context_));
 
         gen->LoadProject(projectFile_);
 

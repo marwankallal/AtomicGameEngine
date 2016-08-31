@@ -453,17 +453,6 @@ bool JSBModule::Load(const String& jsonFilename)
         classnames_.Push(classes[i].GetString());
     }
 
-	if (jsbind->GetPlatformIsDesktop())
-	{
-		JSONArray classesDesktop = root.Get("classes_desktop").GetArray();
-
-		for (unsigned i = 0; i < classesDesktop.Size(); i++)
-		{
-			classnames_.Push(classesDesktop[i].GetString());
-		}
-
-	}
-
     JSONArray classesGeneric = root.Get("classes_generic").GetArray();
 
     for (unsigned i = 0; i < classesGeneric.Size(); i++)
@@ -512,27 +501,6 @@ bool JSBModule::Load(const String& jsonFilename)
     {
         sourceDirs_.Push(sources.GetArray()[i].GetString());
     }
-
-    if (name_ == "Graphics")
-    {
-#ifdef _MSC_VER        
-        if (jsbind->GetPlatform() == "ANDROID" || jsbind->GetPlatform() == "WEB")
-        {
-            sourceDirs_.Push("Source/Atomic/Graphics/OpenGL");
-        }
-        else
-        {
-#ifdef ATOMIC_D3D11
-            sourceDirs_.Push("Source/Atomic/Graphics/Direct3D11");
-#else
-            sourceDirs_.Push("Source/Atomic/Graphics/Direct3D9");
-#endif
-        }
-#else
-        sourceDirs_.Push("Source/Atomic/Graphics/OpenGL");
-#endif
-    }
-
 
     ScanHeaders();
 

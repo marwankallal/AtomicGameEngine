@@ -253,12 +253,6 @@ bool JSBPackage::Load(const String& packageFolder)
     {
         String moduleName = modules.GetArray()[i].GetString();
 
-        if (moduleExcludes_.Contains(jsbind->GetPlatform()))
-        {
-            if (moduleExcludes_[jsbind->GetPlatform()].Contains(moduleName))
-                continue;
-        }
-
         SharedPtr<JSBModule> module(new JSBModule(context_, this));
 
         if (!module->Load(packageFolder + moduleName + ".json"))

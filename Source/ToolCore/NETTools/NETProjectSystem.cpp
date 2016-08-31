@@ -209,7 +209,7 @@ namespace ToolCore
             return false;
         }
 
-        SharedPtr<NETProjectGen> gen(new NETProjectGen(context_, "WINDOWS"));
+        SharedPtr<NETProjectGen> gen(new NETProjectGen(context_));
 
         if (!gen->LoadProject(project))
         {

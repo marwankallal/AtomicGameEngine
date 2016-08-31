@@ -93,9 +93,11 @@ namespace AtomicEngine
             NativeCore.Initialize();
             CSComponentCore.Initialize();
 
+#if ATOMIC_DESKTOP
             string[] arguments = Environment.GetCommandLineArgs();
             foreach (string arg in arguments)
                 AppBase.AddArgument(arg);
+#endif
 
         }
 

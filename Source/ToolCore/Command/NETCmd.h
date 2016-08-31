@@ -56,7 +56,6 @@ private:
 
     // genproject command
     String projectFile_;
-    String scriptPlatform_;
 
     // parse command
     String assemblyPath_;
