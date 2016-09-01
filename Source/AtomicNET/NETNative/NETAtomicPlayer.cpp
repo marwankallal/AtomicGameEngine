@@ -78,24 +78,6 @@ namespace Atomic
         return 0;
     }
 
-    bool NETAtomicPlayer::RunFrame()
-    {
-        engine_->RunFrame();
-
-        if (engine_->IsExiting())
-        {
-            return false;
-        }
-
-        return true;
-
-    }
-
-    void NETAtomicPlayer::Shutdown()
-    {
-        Stop();
-    }
-
     void NETAtomicPlayer::Stop()
     {
         PlayerApp::Stop();

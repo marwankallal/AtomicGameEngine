@@ -48,6 +48,20 @@ if (APPLE)
 
 endif()
 
+if (MSVC)
+    set (ATOMICNET_NATIVE_DIR Desktop)
+elseif(APPLE)
+    if (IOS)
+        set (ATOMICNET_NATIVE_DIR iOS)
+    else()
+        set (ATOMICNET_NATIVE_DIR Desktop)
+    endif()
+elseif(LINUX)
+  set (ATOMICNET_NATIVE_DIR Desktop)
+elseif(ANDROID)
+    set (ATOMICNET_NATIVE_DIR ANdroid)
+endif()
+
 add_custom_command( TARGET AtomicNETNative POST_BUILD
-                    COMMAND "${CMAKE_COMMAND}" ARGS -E make_directory \"${CMAKE_SOURCE_DIR}/Artifacts/AtomicNET/$<$<CONFIG:debug>:Debug>$<$<CONFIG:release>:Release>\"
-                    COMMAND "${CMAKE_COMMAND}" ARGS -E copy_if_different \"$<TARGET_FILE:AtomicNETNative>\" \"${CMAKE_SOURCE_DIR}/Artifacts/AtomicNET/$<$<CONFIG:debug>:Debug>$<$<CONFIG:release>:Release>\" )
+                    COMMAND "${CMAKE_COMMAND}" ARGS -E make_directory \"${CMAKE_SOURCE_DIR}/Artifacts/AtomicNET/$<$<CONFIG:debug>:Debug>$<$<CONFIG:release>:Release>/${ATOMICNET_NATIVE_DIR}\"
+                    COMMAND "${CMAKE_COMMAND}" ARGS -E copy_if_different \"$<TARGET_FILE:AtomicNETNative>\" \"${CMAKE_SOURCE_DIR}/Artifacts/AtomicNET/$<$<CONFIG:debug>:Debug>$<$<CONFIG:release>:Release>/${ATOMICNET_NATIVE_DIR}\" )

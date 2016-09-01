@@ -28,8 +28,6 @@
 #include <Atomic/IO/FileSystem.h>
 
 #include "../ToolEnvironment.h"
-#include "../ToolSystem.h"
-#include "../Project/Project.h"
 #include "NETProjectGen.h"
 
 namespace ToolCore
@@ -54,6 +52,21 @@ namespace ToolCore
 		atomicRoot = RemoveTrailingSlash(atomicRoot);
 
 		path.Replace("$ATOMIC_ROOT$", atomicRoot, false);
+
+#ifdef ATOMIC_DEBUG
+		String config = "Debug";
+#else
+		String config = "Release";
+#endif
+
+		path.Replace("$ATOMIC_CONFIG$", config, false);
+
+		const String& atomicProjectPath = projectGen_->GetAtomicProjectPath();
+
+		if (atomicProjectPath.Length())
+		{
+			path.Replace("$ATOMIC_PROJECT_ROOT$", atomicProjectPath, false);
+		}
 
 	}
 
@@ -186,6 +199,7 @@ namespace ToolCore
 
 	void NETCSProject::CreateReferencesItemGroup(XMLElement &projectRoot)
 	{
+		ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
 
 		XMLElement xref;
 		XMLElement igroup = projectRoot.CreateChild("ItemGroup");
@@ -197,6 +211,34 @@ namespace ToolCore
 			// project reference
 			if (projectGen_->GetCSProjectByName(ref))
 				continue;
+
+			String platform;
+
+			if (projectGen_->GetAtomicProjectPath().Length() && ref == "AtomicNET")
+			{
+				if (GetIsPCL())
+				{
+					platform = "Portable";
+				}
+				else if (SupportsDesktop())
+				{
+					platform = "Desktop";
+				}
+				else if (SupportsPlatform("android"))
+				{
+					platform = "Android";
+				}
+
+				if (platform.Length())
+				{
+					String atomicNETAssembly = tenv->GetAtomicNETCoreAssemblyDir() + ToString("%s\\AtomicNET.dll", platform.CString());
+					xref = igroup.CreateChild("Reference");
+					xref.SetAttribute("Include", atomicNETAssembly);
+				}
+
+				continue;
+
+			}
 
 			// NuGet project
 			if (ref.StartsWith("<"))
@@ -219,16 +261,18 @@ namespace ToolCore
 
 		}
 
-		Project* project = projectGen_->GetAtomicProject();
+		const String atomicProjectPath = projectGen_->GetAtomicProjectPath();
 
-		if (project)
+		if (atomicProjectPath.Length())
 		{
+			String resourceDir = AddTrailingSlash(atomicProjectPath) + "Resources/";
+
 			Vector<String> result;
-			GetSubsystem<FileSystem>()->ScanDir(result, project->GetResourcePath(), "*.dll", SCAN_FILES, true);
+			GetSubsystem<FileSystem>()->ScanDir(result, resourceDir , "*.dll", SCAN_FILES, true);
 
 			for (unsigned j = 0; j < result.Size(); j++)
 			{
-				String path = project->GetResourcePath() + result[j];
+				String path = resourceDir + result[j];
 
 				String relativePath;
 
@@ -323,9 +367,7 @@ namespace ToolCore
 
 	void NETCSProject::CreateCustomCommands(XMLElement &propertyGroup, const String& cfg)
 	{
-		Project* atomicProject = projectGen_->GetAtomicProject();
-
-		if (!atomicProject)
+		if (!projectGen_->GetAtomicProjectPath().Length())
 			return;
 
 		ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
@@ -352,7 +394,7 @@ namespace ToolCore
 #endif
 
 
-		startArguments += ToString("--project \"%s\"", atomicProject->GetProjectPath().CString());
+		startArguments += ToString("--project \"%s\"", projectGen_->GetAtomicProjectPath().CString());
 
 		String command = ToString("\"%s\"", playerBin.CString()) + " " + startArguments;
 
@@ -366,7 +408,7 @@ namespace ToolCore
 		pgroup.SetAttribute("Condition", " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ");
 
 		pgroup.CreateChild("Optimize").SetValue("true");
-		pgroup.CreateChild("OutputPath").SetValue(assemblyOutputPath_ + "Release\\");
+		pgroup.CreateChild("OutputPath").SetValue(assemblyOutputPath_);
 
 		Vector<String> constants;
 		constants.Push("TRACE");
@@ -431,7 +473,7 @@ namespace ToolCore
 
 		}
 		pgroup.CreateChild("Optimize").SetValue("false");
-		pgroup.CreateChild("OutputPath").SetValue(assemblyOutputPath_ + "Debug\\");
+		pgroup.CreateChild("OutputPath").SetValue(assemblyOutputPath_);
 
 		Vector<String> constants;
 		constants.Push("DEBUG");
@@ -726,45 +768,19 @@ namespace ToolCore
 		if (!GetIsPCL() && !sharedReferences_.Size() && outputType_ != "Shared")
 			CreateAssemblyInfo();
 
-		Project* atomicProject = projectGen_->GetAtomicProject();
+		const String& atomicProjectPath = projectGen_->GetAtomicProjectPath();
 
-		if (atomicProject)
+		if (atomicProjectPath.Length())
 		{
-			XMLElement afterBuild = project.CreateChild("Target");
-			afterBuild.SetAttribute("Name", "AfterBuild");
-
-			XMLElement copy = afterBuild.CreateChild("Copy");
-			copy.SetAttribute("SourceFiles", "$(TargetPath)");
-
-			String destPath = projectPath_ + "../../../Resources/";
-			String relativePath;
-
-			if (GetRelativePath(projectPath_, atomicProject->GetResourcePath(), relativePath))
-			{
-				destPath = AddTrailingSlash(relativePath);
-			}
-
-			copy.SetAttribute("DestinationFolder", destPath);
-
-#ifndef ATOMIC_PLATFORM_WINDOWS
-
-			copy = afterBuild.CreateChild("Copy");
-			copy.SetAttribute("SourceFiles", "$(TargetPath).mdb");
-			copy.SetAttribute("DestinationFolder", destPath);
-
-#endif
-
 			// Create the AtomicProject.csproj.user file if it doesn't exist
+
 			String userSettingsFilename = projectPath_ + name_ + ".csproj.user";
+
 			if (!fileSystem->FileExists(userSettingsFilename))
 			{
 				SharedPtr<XMLFile> userSettings(new XMLFile(context_));
 
 				XMLElement project = userSettings->CreateRoot("Project");
-
-				//XMLElement xml = userRoot.CreateChild("?xml");
-				//xml.SetAttribute("version", "1.0");
-				//xml.SetAttribute("encoding", "utf-8");
 
 				project.SetAttribute("ToolsVersion", "14.0");
 				project.SetAttribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
@@ -782,19 +798,13 @@ namespace ToolCore
 
 					String startArguments;
 
-#ifdef ATOMIC_DEV_BUILD
-					String playerBin = tenv->GetAtomicNETRootDir() + cfg + "/AtomicIPCPlayer.exe";
-#else
-					String playerBin = tenv->GetAtomicNETRootDir() + "Release/AtomicIPCPlayer.exe";
-
+#ifndef ATOMIC_DEV_BUILD
 					startArguments += ToString("--resourcePrefix \"%s\" ", (fileSystem->GetProgramDir() + "Resources/").CString());
-
 #endif
 
-					propertyGroup.CreateChild("StartAction").SetValue("Program");
-					propertyGroup.CreateChild("StartProgram").SetValue(playerBin);
+					propertyGroup.CreateChild("StartAction").SetValue("Project");
 
-					startArguments += ToString("--project \"%s\"", atomicProject->GetProjectPath().CString());
+					startArguments += ToString("--project \"%s\"", atomicProjectPath.CString());
 
 					propertyGroup.CreateChild("StartArguments").SetValue(startArguments);
 
@@ -835,6 +845,38 @@ namespace ToolCore
 		{
 			project.CreateChild("Import").SetAttribute("Project", importProjects_[i].CString());
 		}
+
+		// Have to come after the imports, so AfterBuild exists
+
+		if (name_ == "AtomicProject")
+		{
+			XMLElement afterBuild = project.CreateChild("Target");
+			afterBuild.SetAttribute("Name", "AfterBuild");
+
+			XMLElement copy = afterBuild.CreateChild("Copy");
+			copy.SetAttribute("SourceFiles", "$(TargetPath)");
+
+			String destPath = projectPath_ + "../../../Resources/";
+			String relativePath;
+
+			String resourceDir = AddTrailingSlash(atomicProjectPath) + "Resources/";
+
+			if (GetRelativePath(projectPath_, resourceDir, relativePath))
+			{
+				destPath = AddTrailingSlash(relativePath);
+			}
+
+			copy.SetAttribute("DestinationFolder", destPath);
+
+#ifndef ATOMIC_PLATFORM_WINDOWS
+
+			copy = afterBuild.CreateChild("Copy");
+			copy.SetAttribute("SourceFiles", "$(TargetPath).mdb");
+			copy.SetAttribute("DestinationFolder", destPath);
+
+#endif
+		}
+
 
 		String projectSource = xmlFile_->ToString();
 
@@ -1279,11 +1321,11 @@ namespace ToolCore
 		return true;
 	}
 
-	bool NETProjectGen::LoadProject(const String& projectPath)
+	bool NETProjectGen::LoadJSONProject(const String& jsonProjectPath)
 	{
 		SharedPtr<File> file(new File(context_));
 
-		if (!file->Open(projectPath))
+		if (!file->Open(jsonProjectPath))
 			return false;
 
 		String json;
@@ -1297,56 +1339,76 @@ namespace ToolCore
 		return LoadProject(jvalue);
 	}
 
-	bool NETProjectGen::LoadProject(Project* project)
+	bool NETProjectGen::LoadAtomicProject(const String& atomicProjectPath)
 	{
 		FileSystem* fileSystem = GetSubsystem<FileSystem>();
 		ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
 
-		atomicProject_ = project;
+		String pathname, filename, ext;
+		SplitPath(atomicProjectPath, pathname, filename, ext);
 
-		JSONValue root;
-		JSONValue solution;
-
-		solution["name"] = "AtomicProject";
-		solution["outputPath"] = AddTrailingSlash(project->GetProjectPath()) + "AtomicNET/Solution/";
-
-		JSONArray projects;
-
-		JSONObject jproject;
-		jproject["name"] = "AtomicProject";
-		jproject["outputType"] = "Library";
-		jproject["assemblyName"] = "AtomicProject";
-		jproject["assemblyOutputPath"] = AddTrailingSlash(project->GetProjectPath()) + "AtomicNET/Bin/";
-
-		JSONArray references;
-		references.Push(JSONValue("System"));
-		references.Push(JSONValue("System.Core"));
-		references.Push(JSONValue("System.Xml.Linq"));
-		references.Push(JSONValue("System.XML"));
-
-		String atomicNETAssembly = tenv->GetAtomicNETCoreAssemblyDir() + "AtomicNET.dll";
-
-		if (!fileSystem->FileExists(atomicNETAssembly))
+		if (ext == ".atomic")
 		{
-			ATOMIC_LOGERRORF("NETProjectGen::LoadProject - AtomicNET assembly does not exist: %s", atomicNETAssembly.CString());
-			return false;
+			atomicProjectPath_ = AddTrailingSlash(pathname);
+		}
+		else
+		{
+			atomicProjectPath_ = AddTrailingSlash(atomicProjectPath);
 		}
 
-		references.Push(JSONValue(atomicNETAssembly));
+#ifdef ATOMIC_DEV_BUILD
 
-		jproject["references"] = references;
+		JSONValue netJSON;
 
-		JSONArray sources;
-		sources.Push(JSONValue(ToString("%s", project->GetResourcePath().CString())));
+		SharedPtr<File> netJSONFile(new File(context_));
 
-		jproject["sources"] = sources;
+		String atomicNETProject = tenv->GetRootSourceDir() + "Script/AtomicNET/AtomicNETProject.json";
 
-		projects.Push(jproject);
+		if (!netJSONFile->Open(atomicNETProject))
+			return false;
 
-		root["projects"] = projects;
-		root["solution"] = solution;
+		String netJSONString;
+		netJSONFile->ReadText(netJSONString);
 
-		return LoadProject(root);
+		if (!JSONFile::ParseJSON(netJSONString, netJSON))
+			return false;
+#endif
+
+		String projectPath = tenv->GetRootSourceDir() + "Script/AtomicNET/AtomicProject.json";
+
+		SharedPtr<File> file(new File(context_));
+
+		if (!file->Open(projectPath))
+			return false;
+
+		String json;
+		file->ReadText(json);
+
+		JSONValue jvalue;
+
+		if (!JSONFile::ParseJSON(json, jvalue))
+			return false;
+
+#ifdef ATOMIC_DEV_BUILD
+
+		// patch projects
+
+		JSONArray netProjects = netJSON["projects"].GetArray();
+		JSONArray projects = jvalue["projects"].GetArray();
+
+		for (unsigned i = 0; i < projects.Size(); i++)
+		{
+			netProjects.Push(JSONValue(projects[i].GetObject()));
+		}
+
+		jvalue["projects"] = netProjects;
+
+		return LoadProject(jvalue);
+
+#else
+		return LoadProject(jvalue);
+#endif
+		
 	}
 
 	bool NETProjectGen::GetRequiresNuGet()

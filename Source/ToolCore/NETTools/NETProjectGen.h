@@ -184,11 +184,11 @@ namespace ToolCore
 
         const Vector<SharedPtr<NETCSProject>>& GetCSProjects() { return projects_; }
 
-        Project* GetAtomicProject() const { return atomicProject_;  }
-
         NETCSProject* GetCSProjectByName(const String& name);
 
         bool GetCSProjectDependencies(NETCSProject * source, PODVector<NETCSProject*>& depends) const;
+
+		const String& GetAtomicProjectPath() const { return atomicProjectPath_; }
 
         bool Generate();
 
@@ -200,14 +200,15 @@ namespace ToolCore
         /// If true, the sln file will rewritten if it exists, default is false
         void SetRewriteSolution(bool rewrite);
 
-        bool LoadProject(const JSONValue& root);
-        bool LoadProject(const String& projectPath);
-        bool LoadProject(Project* project);
+        bool LoadJSONProject(const String& jsonProjectPath);
+		bool LoadAtomicProject(const String& atomicProjectPath);
 
 		void AddGlobalDefineConstant(const String& constant) { globalDefineConstants_.Push(constant); }
 		const Vector<String>& GetGlobalDefineConstants() const { return globalDefineConstants_; }
 
     private:
+
+		bool LoadProject(const JSONValue& root);
 
 		/// Returns true if a project is included on the specifed platform
 		bool IncludeProjectOnPlatform(const JSONValue& projectRoot, const String& platform);
@@ -215,7 +216,7 @@ namespace ToolCore
         // if true, the solution (sln) file will be recreated if it exists
         bool rewriteSolution_;
 
-        SharedPtr<Project> atomicProject_;
+		String atomicProjectPath_;
         SharedPtr<NETSolution> solution_;
 		Vector<String> globalDefineConstants_;
         Vector<SharedPtr<NETCSProject>> projects_;

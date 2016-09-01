@@ -38,10 +38,6 @@ namespace Atomic
 
         int Initialize();
 
-        bool RunFrame();
-
-        void Shutdown();
-
     private:
 
         /// Construct.
@@ -49,8 +45,6 @@ namespace Atomic
 
         /// Setup before engine initialization.
         virtual void Setup();
-        /// Cleanup after the main loop.
-        virtual void Stop();
 
     };
 

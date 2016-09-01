@@ -73,30 +73,7 @@ namespace Atomic
 
         return 0;
     }
-
-    bool NETIPCPlayerApp::RunFrame()
-    {
-        engine_->RunFrame();
-
-        if (engine_->IsExiting())
-        {            
-            return false;
-        }
-
-        return true;
-        
-    }
     
-    void NETIPCPlayerApp::Shutdown()
-    {
-        Stop();
-    }
-
-    void NETIPCPlayerApp::Stop()
-    {
-        IPCPlayerApp::Stop();
-    }
-
     NETIPCPlayerApp* NETIPCPlayerApp::CreateInternal()
     {
         return new NETIPCPlayerApp(NETCore::GetContext());

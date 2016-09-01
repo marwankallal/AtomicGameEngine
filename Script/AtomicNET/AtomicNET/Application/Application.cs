@@ -1,8 +1,4 @@
 
-using System;
-using System.IO;
-using System.Reflection;
-
 namespace AtomicEngine
 {
 
@@ -10,6 +6,11 @@ namespace AtomicEngine
     {
         void Remove();
         bool IsAlive { get; }
+    }
+
+    public partial class Application : AObject
+    {
+        
     }
 
 }

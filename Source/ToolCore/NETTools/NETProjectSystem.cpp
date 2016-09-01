@@ -211,7 +211,7 @@ namespace ToolCore
 
         SharedPtr<NETProjectGen> gen(new NETProjectGen(context_));
 
-        if (!gen->LoadProject(project))
+        if (!gen->LoadAtomicProject(project->GetProjectPath()))
         {
             ATOMIC_LOGERRORF("NETProjectSystem::GenerateSolution - Unable to Load Project");
             return false;

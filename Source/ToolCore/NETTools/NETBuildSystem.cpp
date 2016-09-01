@@ -102,27 +102,6 @@ namespace ToolCore
 
         if (!code)
         {
-            if (curBuild_->project_.NotNull())
-            {
-                // Copy compiled assembly to resource path
-                String srcAssembly = AddTrailingSlash(curBuild_->project_->GetProjectPath()) + "AtomicNET/Bin/";
-                srcAssembly += curBuild_->configuration_;
-                srcAssembly += "/AtomicProject.dll";
-
-                String dstAssembly = AddTrailingSlash(curBuild_->project_->GetResourcePath()) + "AtomicProject.dll";
-
-                FileSystem* fileSystem = GetSubsystem<FileSystem>();
-
-                bool result = fileSystem->Copy(srcAssembly, dstAssembly);
-
-                if (!result)
-                {
-                    success = false;
-                    errorMsg = ToString("BuildBase::BuildCopyFile: Unable to copy assembly %s -> %s", srcAssembly.CString(), dstAssembly.CString());
-                    errorMsg += ToString("\nCompilation Command: %s", curBuild_->allArgs_.CString());
-                }
-
-            }
 
         }
         else
@@ -193,14 +172,8 @@ namespace ToolCore
 
             if (ext == ".atomic")
             {
-                if (curBuild_->project_.Null() || curBuild_->project_.Expired())
-                {
-                    CurrentBuildError(ToString("Error loading project (%s), project expired", solutionPath.CString()));
-                }
 
-                NETProjectSystem* projectSystem = GetSubsystem<NETProjectSystem>();
-
-                solutionPath = projectSystem->GetSolutionPath();
+                solutionPath = AddTrailingSlash(GetPath(solutionPath)) + "AtomicNET/Solution/AtomicProject.sln";
 
                 // TODO: handle projects that require nuget
                 requiresNuGet = false;
@@ -216,7 +189,7 @@ namespace ToolCore
             {
                 SharedPtr<NETProjectGen> gen(new NETProjectGen(context_));
 
-                if (!gen->LoadProject(solutionPath))
+                if (!gen->LoadJSONProject(solutionPath))
                 {
                     CurrentBuildError(ToString("Error loading project (%s)", solutionPath.CString()));
                     return;

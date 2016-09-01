@@ -1,0 +1,67 @@
+{
+    "solution" : {
+        "name" : "AtomicProject",
+        "outputPath" : "$ATOMIC_PROJECT_ROOT$/AtomicNET/Solution/"
+    },
+    "projects" : [
+        {
+            "name": "AtomicProject",
+            "outputType" : "Library",
+            "rootNamespace" : "",
+            "assemblyName" : "AtomicProject",
+            "assemblyOutputPath" : "$ATOMIC_PROJECT_ROOT$/AtomicNET/Bin/Portable",
+            "projectTypeGuids" : ["786C830F-07A1-408B-BD7F-6EE04809D6DB", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"],
+            "targetFrameworkProfile" : "Profile7",
+            "importProjects" : ["$(MSBuildExtensionsPath32)\\Microsoft\\Portable\\$(TargetFrameworkVersion)\\Microsoft.Portable.CSharp.targets"],
+            "references" : [
+                "System",
+                "System.Core" ,
+                "System.Xml.Linq",
+                "System.XML",
+                "AtomicNET"
+            ],
+            "sources" : [
+                "$ATOMIC_PROJECT_ROOT$/Resources/"
+            ]
+        },
+        {
+            "name": "AtomicPlayer.Desktop",
+            "platforms" : ["desktop"],
+            "outputType" : "Exe",
+            "rootNamespace" : "AtomicPlayer",
+            "assemblyName" : "AtomicPlayer",
+            "assemblyOutputPath" : "$ATOMIC_PROJECT_ROOT$/AtomicNET/Bin/Desktop",
+            "references" : [
+                "System",
+                "System.Core" ,
+                "System.Xml.Linq",
+                "System.XML",
+                "AtomicNET.Desktop"
+            ],
+            "sources" : [
+                "$ATOMIC_ROOT$/Script/AtomicNET/AtomicPlayer/AtomicPlayer.Common",
+                "$ATOMIC_ROOT$/Script/AtomicNET/AtomicPlayer/AtomicPlayer.Desktop"
+            ]
+        },
+        {
+            "name": "AtomicPlayer.Android",
+            "platforms" : ["android"],
+            "outputType" : "Library",
+            "rootNamespace" : "AtomicPlayer",
+            "assemblyName" : "AtomicPlayer",
+            "assemblyOutputPath" : "$ATOMIC_PROJECT_ROOT$/AtomicNET/Bin/Android",
+            "references" : [
+                "Mono.Android",
+                "System",
+                "System.Core",
+                "System.Xml.Linq",
+                "System.Xml",
+                "AtomicNET.Android"
+            ],
+            "sources" : [
+                "$ATOMIC_ROOT$/Script/AtomicNET/AtomicPlayer/AtomicPlayer.Common",
+                "$ATOMIC_ROOT$/Script/AtomicNET/AtomicPlayer/AtomicPlayer.Android"
+            ]
+        }
+    ]
+}

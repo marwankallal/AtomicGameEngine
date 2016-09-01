@@ -180,16 +180,8 @@ void ToolEnvironment::SetRootSourceDir(const String& sourceDir)
     String config = "Release";
 #endif
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
-	String platform = "WINDOWS";
-#elif defined ATOMIC_PLATFORM_OSX
-	String platform = "MACOSX";
-#else
-	String platform = "LINUX";
-#endif
-
     atomicNETRootDir_ = rootSourceDir_ + "Artifacts/AtomicNET/";
-    atomicNETCoreAssemblyDir_ = rootSourceDir_ + "Artifacts/AtomicNET/" + platform + "/" + config + "/";
+    atomicNETCoreAssemblyDir_ = rootSourceDir_ + "Artifacts/AtomicNET/" + config + "/";
     atomicNETManagedPlayerBinary_ = atomicNETCoreAssemblyDir_ + "AtomicPlayer.exe";
     atomicNETManagedIPCPlayerBinary_ = atomicNETCoreAssemblyDir_ + "AtomicIPCPlayer.exe";
 
