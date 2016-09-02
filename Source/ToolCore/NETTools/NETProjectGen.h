@@ -132,6 +132,9 @@ namespace ToolCore
 
 		String targetFrameworkProfile_;
 		Vector<String> sharedReferences_;
+
+		// Android
+		bool androidApplication_;
     };
 
     class NETSolution : public NETProjectBase

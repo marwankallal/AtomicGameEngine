@@ -69,7 +69,7 @@ void JSBEnum::Preprocess()
 
         // String platform = jsbind->GetPlatform();
 
-		bool mobile = false; //  platform == "WEB" || platform == "ANDROID" || platform == "IOS";
+		bool mobile = true; //  platform == "WEB" || platform == "ANDROID" || platform == "IOS";
 
         if (mobile)
         {

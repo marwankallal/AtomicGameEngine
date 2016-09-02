@@ -38,6 +38,30 @@
 #include <stdio.h>
 #endif
 
+// Android or iOS: use SDL_main
+#if defined(__ANDROID__) || defined(IOS)
+
+typedef int(*sdl_entry_callback)();
+
+static sdl_entry_callback sdlEntryCallback = 0;
+
+extern "C" void RegisterSDLEntryCallback(sdl_entry_callback callback)
+{
+	sdlEntryCallback = callback;
+}
+
+extern "C" int SDL_main(int argc, char** argv); 
+int SDL_main(int argc, char** argv) 
+{ 
+    Atomic::ParseArguments(argc, argv); 
+	if (sdlEntryCallback != 0)
+	{
+		return sdlEntryCallback();
+	}
+	return 0;
+}
+#endif
+
 namespace Atomic
 {
 

@@ -59,7 +59,7 @@ elseif(APPLE)
 elseif(LINUX)
   set (ATOMICNET_NATIVE_DIR Desktop)
 elseif(ANDROID)
-    set (ATOMICNET_NATIVE_DIR ANdroid)
+    set (ATOMICNET_NATIVE_DIR Android)
 endif()
 
 add_custom_command( TARGET AtomicNETNative POST_BUILD

@@ -47,10 +47,10 @@ namespace AtomicEngine
     public class AndroidSDLSurface : IAtomicSDLSurface
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate int SdlCallback(IntPtr context);
+        public delegate int SDLEntryCallback();
 
         [DllImport(Constants.LIBNAME, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void RegisterSdlLauncher(SdlCallback callback);
+        internal static extern void RegisterSDLEntryCallback(SDLEntryCallback callback);
 
         public SDLSurface SdlSurface { get; set; }
 
@@ -72,33 +72,13 @@ namespace AtomicEngine
 
         public bool IsAlive => SDLActivity.MIsSurfaceReady;
 
-        /*
-
         /// <summary>
         /// Creates a view (SurfaceView) that can be added anywhere
         /// </summary>
-        public static SDLSurface CreateSurface<TApplication>(Activity activity, ApplicationOptions options = null, bool finishActivtiyOnExit = false) where TApplication : Application
-        {
-            return CreateSurface(activity, typeof(TApplication), options, finishActivtiyOnExit);
-        }
-
-        /// <summary>
-        /// Creates a view (SurfaceView) that can be added anywhere
-        /// </summary>
-        public static SDLSurface CreateSurface(Activity activity, Type appType, ApplicationOptions options = null, bool finishActivtiyOnExit = false)
-        {
-            return CreateSurface(activity, () => Application.CreateInstance(appType, options), finishActivtiyOnExit);
-        }
-
-        */
-
-        /// <summary>
-        /// Creates a view (SurfaceView) that can be added anywhere
-        /// </summary>
-        public static SDLSurface CreateSurface(Activity activity, Func<Application> applicationFactory, bool finishActivtiyOnExit = false)
+        public static SDLSurface CreateSurface(Activity activity, bool finishActivtiyOnExit = false)
         {
             var surface = SDLActivity.CreateSurface(activity);
-            SetSdlMain(applicationFactory, finishActivtiyOnExit, surface);
+            SetSDLEntryCallback(finishActivtiyOnExit, surface);
             return surface;
         }
 
@@ -132,46 +112,39 @@ namespace AtomicEngine
             SDLActivity.OnWindowFocusChanged(focus);
         }
 
-        /*
-
         /// <summary>
         /// The simpliest way to launch a game. It opens a special full-screen activity
         /// </summary>
-        public static void RunInActivity<TApplication>(ApplicationOptions options = null) where TApplication : Application
+        public static void RunInActivity()
         {
-            RunInActivity(typeof(TApplication), options);
-        }
-
-        /// <summary>
-        /// The simpliest way to launch a game. It opens a special full-screen activity
-        /// </summary>
-        public static void RunInActivity(Type appType, ApplicationOptions options = null)
-        {
-            RunInActivity(() => Application.CreateInstance(appType, options));
-        }
-
-    */
-
-        /// <summary>
-        /// The simpliest way to launch a game. It opens a special full-screen activity
-        /// </summary>
-        public static void RunInActivity(Func<Application> applicationFactory)
-        {
-            SetSdlMain(applicationFactory, true, null);
+            SetSDLEntryCallback(true, null);
             var context = Android.App.Application.Context;
             var intent = new Intent(context, typeof(Org.Libsdl.App.AtomicActivity));
             intent.AddFlags(ActivityFlags.NewTask);
             context.StartActivity(intent);
         }
 
-        static void SetSdlMain(Func<Application> applicationFactory, bool finishActivityOnExit, SDLSurface surface)
+        static AndroidSDLSurface __surface;
+
+        static void SetSDLEntryCallback(bool finishActivityOnExit, SDLSurface surface)
         {
             SDLActivity.FinishActivityOnNativeExit = finishActivityOnExit;
-            RegisterSdlLauncher(_ => {
-                //var app = applicationFactory();
-                // app.AtomicSurface = new AndroidSDLSurface(surface);
-                //var code = app.Run();                
-                //return code;
+            RegisterSDLEntryCallback( () => {
+
+                __surface = new AndroidSDLSurface(surface);
+
+                // Create the Application
+                var app = NETAtomicPlayer.Create(new string[0]);
+
+                // Managed code in charge of main loop
+                while (app.RunFrame())
+                {
+
+                }
+
+                // Shut 'er down
+                app.Shutdown();
+
                 return 0;
             });
         }

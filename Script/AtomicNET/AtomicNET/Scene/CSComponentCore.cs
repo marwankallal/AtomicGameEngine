@@ -11,7 +11,8 @@ namespace AtomicEngine
         public CSComponentInfo(Type type)
         {
 
-#if ATOMIC_DESKTOP
+#if ATOMIC_DESKTOP || ATOMIC_ANDROID
+
             this.Type = type;
 
             // Fields
@@ -46,7 +47,7 @@ namespace AtomicEngine
         {
             // FIXME: This will need to be optimized, specifically to use uint key hashes for value lookup
 
-#if ATOMIC_DESKTOP
+#if ATOMIC_DESKTOP || ATOMIC_ANDROID
 
             fieldMap.CopyVariantMap(fieldValuePtr);
 
@@ -283,10 +284,10 @@ namespace AtomicEngine
 
         }
 
-
         void HandleComponentLoad(uint eventType, ScriptVariantMap eventData)
         {
             var assemblyPath = eventData["AssemblyPath"];
+
             var className = eventData["ClassName"];
             IntPtr csnative = eventData.GetVoidPtr("NativeInstance");
             IntPtr fieldValues = IntPtr.Zero;
@@ -319,46 +320,45 @@ namespace AtomicEngine
 
         }
 
-        void HandleComponentAssemblyReference(uint eventType, ScriptVariantMap eventData)
+        void ParseComponents()
         {
-#if ATOMIC_DESKTOP
+#if ATOMIC_DESKTOP || ATOMIC_ANDROID
 
-            string assemblyPath = eventData["AssemblyPath"];
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
 
-            Dictionary<string, CSComponentInfo> assemblyTypes = null;
-
-            if (!componentCache.TryGetValue(assemblyPath, out assemblyTypes))
+            foreach (Assembly assembly in assemblies)
             {
-                componentCache[assemblyPath] = assemblyTypes = new Dictionary<string, CSComponentInfo>();
-            }
+                String assemblyPath = assembly.GetName().Name;
 
-            // HACK!
-            if (PlayerApp.DeployedApp)
-            {
-                assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/AtomicProject.dll";
-            }
+                Dictionary<string, CSComponentInfo> assemblyTypes = null;
 
-            Assembly assembly = Assembly.LoadFrom(assemblyPath);
-
-            Type[] types = assembly.GetTypes();
-
-            foreach (var type in types)
-            {
-                if (type.IsSubclassOf(typeof(CSComponent)))
+                if (!componentCache.TryGetValue(assemblyPath, out assemblyTypes))
                 {
-                    var csinfo = new CSComponentInfo(type);
-                    csinfoLookup[csinfo.Type] = csinfo;
-                    assemblyTypes[type.Name] = csinfo;
+                    componentCache[assemblyPath] = assemblyTypes = new Dictionary<string, CSComponentInfo>();
                 }
+
+                Type[] types = assembly.GetTypes();
+
+                foreach (var type in types)
+                {
+                    if (type.IsSubclassOf(typeof(CSComponent)))
+                    {
+                        var csinfo = new CSComponentInfo(type);
+                        csinfoLookup[csinfo.Type] = csinfo;
+                        assemblyTypes[type.Name] = csinfo;
+                    }
+                }
+
             }
 #endif
         }
 
         internal static void Initialize()
         {
+
             instance = new CSComponentCore();
+            instance.ParseComponents();
             
-            instance.SubscribeToEvent("CSComponentAssemblyReference", instance.HandleComponentAssemblyReference);
             instance.SubscribeToEvent("CSComponentLoad", instance.HandleComponentLoad);
             instance.SubscribeToEvent("Update", instance.HandleUpdate);
 

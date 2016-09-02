@@ -36,7 +36,8 @@
                 "System.Core" ,
                 "System.Xml.Linq",
                 "System.XML",
-                "AtomicNET.Desktop"
+                "AtomicNET.Desktop",
+                "AtomicProject"
             ],
             "sources" : [
                 "$ATOMIC_ROOT$/Script/AtomicNET/AtomicPlayer/AtomicPlayer.Common",
@@ -49,14 +50,18 @@
             "outputType" : "Library",
             "rootNamespace" : "AtomicPlayer",
             "assemblyName" : "AtomicPlayer",
+            "projectTypeGuids" : ["EFBA0AD7-5A72-4C68-AF49-83D382785DCF", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"],
             "assemblyOutputPath" : "$ATOMIC_PROJECT_ROOT$/AtomicNET/Bin/Android",
+            "androidApplication" : true,
             "references" : [
                 "Mono.Android",
                 "System",
                 "System.Core",
                 "System.Xml.Linq",
                 "System.Xml",
-                "AtomicNET.Android"
+                "AtomicNET.Android.SDL",
+                "AtomicNET.Android",
+                "AtomicProject"
             ],
             "sources" : [
                 "$ATOMIC_ROOT$/Script/AtomicNET/AtomicPlayer/AtomicPlayer.Common",

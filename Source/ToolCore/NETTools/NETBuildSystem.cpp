@@ -176,7 +176,11 @@ namespace ToolCore
                 solutionPath = AddTrailingSlash(GetPath(solutionPath)) + "AtomicNET/Solution/AtomicProject.sln";
 
                 // TODO: handle projects that require nuget
-                requiresNuGet = false;
+#ifdef ATOMIC_DEV_BUILD
+                requiresNuGet = true;
+#else
+				requiresNuGet = false;
+#endif
 
                 if (!fileSystem->FileExists(solutionPath))
                 {

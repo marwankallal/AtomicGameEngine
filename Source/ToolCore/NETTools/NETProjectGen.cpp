@@ -70,7 +70,8 @@ namespace ToolCore
 
 	}
 
-	NETCSProject::NETCSProject(Context* context, NETProjectGen* projectGen) : NETProjectBase(context, projectGen)
+	NETCSProject::NETCSProject(Context* context, NETProjectGen* projectGen) : NETProjectBase(context, projectGen),
+		androidApplication_(false)
 	{
 
 	}
@@ -498,13 +499,16 @@ namespace ToolCore
 		}
 		else
 		{
-			if (SupportsPlatform("android"))
+			if (androidApplication_)
 			{
-				if (outputType_.ToLower() != "library")
-				{
-					pgroup.CreateChild("AndroidUseSharedRuntime").SetValue("True");
-					pgroup.CreateChild("AndroidLinkMode").SetValue("None");
-				}
+				pgroup.CreateChild("AndroidUseSharedRuntime").SetValue("False");
+				pgroup.CreateChild("AndroidLinkMode").SetValue("None");
+				pgroup.CreateChild("EmbedAssembliesIntoApk").SetValue("True");
+				pgroup.CreateChild("BundleAssemblies").SetValue("False");
+				pgroup.CreateChild("AndroidCreatePackagePerAbi").SetValue("False");
+				pgroup.CreateChild("Debugger").SetValue("Xamarin");
+				pgroup.CreateChild("AndroidEnableMultiDex").SetValue("False");
+				pgroup.CreateChild("AndroidSupportedAbis").SetValue("armeabi-v7a");
 			}
 		}
 
@@ -519,15 +523,6 @@ namespace ToolCore
 
 		if (!libraryProjectZips_.Size())
 		{
-			/*
-			XMLElement igroup = projectRoot.CreateChild("ItemGroup");
-
-			XMLElement reference = igroup.CreateChild("Reference");
-			reference.SetAttribute("Include", "Mono.Android");
-
-			reference = igroup.CreateChild("Reference");
-			reference.SetAttribute("Include", "mscorlib");
-			*/
 		}
 
 		if (libraryProjectZips_.Size())
@@ -553,6 +548,18 @@ namespace ToolCore
 		if (!importProjects_.Size())
 		{
 			projectRoot.CreateChild("Import").SetAttribute("Project", "$(MSBuildExtensionsPath)\\Xamarin\\Android\\Xamarin.Android.CSharp.targets");
+		}
+
+		if (androidApplication_)
+		{
+			// TODO: other abi
+			ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
+			String nativePath = AddTrailingSlash(tenv->GetAtomicNETRootDir()) + "Debug/Android/Native/armeabi-v7a/libAtomicNETNative.so";
+
+			XMLElement nativeLibrary =  projectRoot.CreateChild("ItemGroup").CreateChild("AndroidNativeLibrary"); 
+			nativeLibrary.SetAttribute("Include", nativePath);
+
+			nativeLibrary.CreateChild("Link").SetValue("Libs\\armeabi-v7a\\libAtomicNETNative.so");
 		}
 
 	}
@@ -646,7 +653,7 @@ namespace ToolCore
 				pgroup.CreateChild("AndroidResgenFile").SetValue("Resources\\Resource.Designer.cs");
 				pgroup.CreateChild("AndroidUseLatestPlatformSdk").SetValue("True");
 
-				if (outputType_.ToLower() == "library")
+				if (!androidApplication_)
 				{
 					// 10368E6C-D01B-4462-8E8B-01FC667A7035 is a binding library
 					if (!projectTypeGuids_.Contains("{10368E6C-D01B-4462-8E8B-01FC667A7035}"))
@@ -654,8 +661,11 @@ namespace ToolCore
 				}
 				else
 				{
+					// Android Application
+
 					pgroup.CreateChild("AndroidApplication").SetValue("true");
 					pgroup.CreateChild("AndroidManifest").SetValue("Properties\\AndroidManifest.xml");
+					pgroup.CreateChild("GenerateSerializationAssemblies").SetValue("Off");
 				}
 
 			}
@@ -915,6 +925,8 @@ namespace ToolCore
 		projectGuid_ = projectGen_->GenerateUUID();
 
 		outputType_ = root["outputType"].GetString();
+
+		androidApplication_ = root["androidApplication"].GetBool();
 
 		rootNamespace_ = root["rootNamespace"].GetString();
 		assemblyName_ = root["assemblyName"].GetString();
