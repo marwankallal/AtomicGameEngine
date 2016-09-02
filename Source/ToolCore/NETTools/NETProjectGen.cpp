@@ -71,7 +71,8 @@ namespace ToolCore
 	}
 
 	NETCSProject::NETCSProject(Context* context, NETProjectGen* projectGen) : NETProjectBase(context, projectGen),
-		androidApplication_(false)
+		androidApplication_(false),
+		playerApplication_(false)
 	{
 
 	}
@@ -518,6 +519,30 @@ namespace ToolCore
 
 	}
 
+	void NETCSProject::CreateApplicationItems(XMLElement &projectRoot)
+	{
+		const String& projectPath = projectGen_->GetAtomicProjectPath();
+
+		if (!playerApplication_ || !projectPath.Length())
+			return;
+
+		XMLElement itemGroup = projectRoot.CreateChild("ItemGroup");
+
+		if (!androidApplication_)
+		{
+			XMLElement none = itemGroup.CreateChild("None");
+			none.SetAttribute("Include", projectPath + "AtomicNET/Resources/AtomicResources.pak");
+			none.CreateChild("Link").SetValue("AtomicResources.pak");
+			none.CreateChild("CopyToOutputDirectory").SetValue("PreserveNewest");
+		}
+		else
+		{
+			XMLElement androidAsset = itemGroup.CreateChild("AndroidAsset");
+			androidAsset.SetAttribute("Include", projectPath + "AtomicNET/Resources/AtomicResources.pak");
+			androidAsset.CreateChild("Link").SetValue("Assets\\AtomicResources.pak");
+		}
+	}
+
 	void NETCSProject::CreateAndroidItems(XMLElement &projectRoot)
 	{
 
@@ -560,6 +585,10 @@ namespace ToolCore
 			nativeLibrary.SetAttribute("Include", nativePath);
 
 			nativeLibrary.CreateChild("Link").SetValue("Libs\\armeabi-v7a\\libAtomicNETNative.so");
+
+			XMLElement resourceGroup = projectRoot.CreateChild("ItemGroup");
+			resourceGroup.CreateChild("AndroidResource").SetAttribute("Include", "Resources\\values\\Strings.xml");
+			resourceGroup.CreateChild("AndroidResource").SetAttribute("Include", "Resources\\drawable\\Icon.png");
 		}
 
 	}
@@ -775,6 +804,11 @@ namespace ToolCore
 		if (SupportsDesktop() && !GetIsPCL())
 			project.CreateChild("Import").SetAttribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
 
+		if (outputType_.ToLower() == "exe" || androidApplication_)
+		{
+			CreateApplicationItems(project);
+		}
+
 		if (!GetIsPCL() && !sharedReferences_.Size() && outputType_ != "Shared")
 			CreateAssemblyInfo();
 
@@ -927,6 +961,7 @@ namespace ToolCore
 		outputType_ = root["outputType"].GetString();
 
 		androidApplication_ = root["androidApplication"].GetBool();
+		playerApplication_ = root["playerApplication"].GetBool();
 
 		rootNamespace_ = root["rootNamespace"].GetString();
 		assemblyName_ = root["assemblyName"].GetString();

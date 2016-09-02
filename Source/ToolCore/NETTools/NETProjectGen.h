@@ -95,6 +95,7 @@ namespace ToolCore
         void CreateDebugPropertyGroup(XMLElement &projectRoot);
         void CreateReleasePropertyGroup(XMLElement &projectRoot);
 
+		void CreateApplicationItems(XMLElement &projectRoot);
 		void CreateAndroidItems(XMLElement &projectRoot);
 
         void CreateCustomCommands(XMLElement &propertyGroup, const String& cfg);
@@ -133,8 +134,11 @@ namespace ToolCore
 		String targetFrameworkProfile_;
 		Vector<String> sharedReferences_;
 
+		bool playerApplication_;
+
 		// Android
 		bool androidApplication_;
+		
     };
 
     class NETSolution : public NETProjectBase

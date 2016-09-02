@@ -1,6 +1,7 @@
 {
 	"name" : "Input",
 	"sources" : ["Source/Atomic/Input"],
+	"includes" : ["<Atomic/UI/UIWidget.h>"],
 	"classes" : ["Input"],
 	"overloads" : {
 		"Input" : {
@@ -12,7 +13,7 @@
 		     "getTouch(index:number):any;"
         ]
 	},
-    
+
    	"haxe_decl" : {
 		"Input" : [
 		     "getTouch(index:number):Dynamic;"

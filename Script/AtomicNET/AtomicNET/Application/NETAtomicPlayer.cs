@@ -15,8 +15,6 @@ namespace AtomicEngine
         /// <returns></returns>
         public static NETAtomicPlayer Create(string[] args, bool headless = false)
         {
-            DeployedApp = true;
-
             // Initialize AtomicNET
             AtomicNET.Initialize();
 

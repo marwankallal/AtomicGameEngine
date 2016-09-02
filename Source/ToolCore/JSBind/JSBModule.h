@@ -92,7 +92,7 @@ public:
 	String GetModuleDefineGuard() const;
 
 	/// Define guard for specific module code
-	String GetClassDefineGuard(const String& name) const;
+	String GetClassDefineGuard(const String& name, const String& language = String::EMPTY) const;
 
 private:
 

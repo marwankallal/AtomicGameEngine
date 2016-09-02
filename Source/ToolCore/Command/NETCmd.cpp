@@ -32,6 +32,9 @@
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"
+#include "../Project/Project.h"
+
+#include "../Build/BuildSystem.h"
 
 #include "NETCmd.h"
 #include "../NETTools/AtomicNETService.h"
@@ -41,7 +44,8 @@
 namespace ToolCore
 {
 
-NETCmd::NETCmd(Context* context) : Command(context)
+NETCmd::NETCmd(Context* context) : Command(context),
+	requiresProjectLoad_(false)
 {
 
 }
@@ -90,6 +94,12 @@ bool NETCmd::Parse(const Vector<String>& arguments, unsigned startIndex, String&
 
         return true;
     }
+	else if (command_ == "genresources")
+	{
+		projectPath_ = startIndex + 2 < arguments.Size() ? arguments[startIndex + 2] : String::EMPTY;
+		platform_ = startIndex + 3 < arguments.Size() ? arguments[startIndex + 3] : String::EMPTY;
+		requiresProjectLoad_ = true;
+	}
     else
     {
         errorMsg = "Unknown net command";
@@ -172,6 +182,39 @@ void NETCmd::Run()
         build->SubscribeToEvent(E_NETBUILDRESULT, ATOMIC_HANDLER(NETCmd, HandleNETBuildResult));
 
     }
+	else if (command_ == "genresources")
+	{
+		BuildSystem* buildSystem = GetSubsystem<BuildSystem>();
+		ToolSystem* toolSystem = GetSubsystem<ToolSystem>();
+		Project* project = toolSystem->GetProject();
+
+		if (!project)
+		{
+			Error("Unable to get project");
+			Finished();
+			return;
+		}
+
+		buildSystem->SetBuildPath(project->GetProjectPath() + "AtomicNET/Resources/");
+
+		Platform* platform = toolSystem->GetPlatformByName(platform_);
+
+		if (!platform)
+		{
+			Error(ToString("Unknown platform %s", platform_.CString()));
+			Finished();
+			return;
+		}
+
+		BuildBase* buildBase = platform->NewBuild(project);
+		buildBase->SetResourcesOnly(true);
+		buildBase->SetVerbose(true);
+		buildSystem->QueueBuild(buildBase);
+		buildSystem->StartNextBuild();
+
+		Finished();
+		return;
+	}
 
 }
 

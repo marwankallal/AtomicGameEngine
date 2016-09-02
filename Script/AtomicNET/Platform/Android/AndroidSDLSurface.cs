@@ -52,7 +52,7 @@ namespace AtomicEngine
         [DllImport(Constants.LIBNAME, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void RegisterSDLEntryCallback(SDLEntryCallback callback);
 
-        public SDLSurface SdlSurface { get; set; }
+        public SDLSurface SdlSurface;
 
         AndroidSDLSurface(SDLSurface sdlSurface)
         {
@@ -128,10 +128,11 @@ namespace AtomicEngine
 
         static void SetSDLEntryCallback(bool finishActivityOnExit, SDLSurface surface)
         {
-            SDLActivity.FinishActivityOnNativeExit = finishActivityOnExit;
-            RegisterSDLEntryCallback( () => {
+            __surface = new AndroidSDLSurface(surface);
 
-                __surface = new AndroidSDLSurface(surface);
+            SDLActivity.FinishActivityOnNativeExit = finishActivityOnExit;
+
+            RegisterSDLEntryCallback( () => {
 
                 // Create the Application
                 var app = NETAtomicPlayer.Create(new string[0]);

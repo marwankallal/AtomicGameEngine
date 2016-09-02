@@ -8,7 +8,6 @@ namespace AtomicEngine
 
     public partial class PlayerApp : AppBase
     {
-        public static bool DeployedApp = false;
 
         static protected void RegisterSubsystems()
         {
@@ -31,15 +30,7 @@ namespace AtomicEngine
 #if ATOMIC_DESKTOP
             String projectAssemblyPath;
 
-            if (!DeployedApp)
-            {
-                var file = AtomicNET.Cache.GetFile("AtomicProject.dll");
-                projectAssemblyPath = file.FullPath;
-            }
-            else
-            {
-                projectAssemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/AtomicProject.dll";
-            }
+            projectAssemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/AtomicProject.dll";
                
             Assembly assembly = Assembly.LoadFrom(projectAssemblyPath);
 

@@ -31,6 +31,7 @@
             "rootNamespace" : "AtomicPlayer",
             "assemblyName" : "AtomicPlayer",
             "assemblyOutputPath" : "$ATOMIC_PROJECT_ROOT$/AtomicNET/Bin/Desktop",
+            "playerApplication" : true,
             "references" : [
                 "System",
                 "System.Core" ,
@@ -53,6 +54,7 @@
             "projectTypeGuids" : ["EFBA0AD7-5A72-4C68-AF49-83D382785DCF", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"],
             "assemblyOutputPath" : "$ATOMIC_PROJECT_ROOT$/AtomicNET/Bin/Android",
             "androidApplication" : true,
+            "playerApplication" : true,
             "references" : [
                 "Mono.Android",
                 "System",

@@ -49,6 +49,8 @@ namespace Atomic
     void NETIPCPlayerApp::Setup()
     {
         IPCPlayerApp::Setup();
+
+		engineParameters_["ResourcePaths"] = "AtomicResources"; 
     }
 
     int NETIPCPlayerApp::Initialize()

@@ -418,7 +418,7 @@ JSBEnum* JSBModule::GetEnum(const String& name)
 
 }
 
-String JSBModule::GetClassDefineGuard(const String& name) const
+String JSBModule::GetClassDefineGuard(const String& name, const String& language) const
 {
 	StringVector platforms;
 
@@ -432,17 +432,75 @@ String JSBModule::GetClassDefineGuard(const String& name) const
 		String platform = platforms[i].ToLower();
 
 		if (platform == "windows")
-			defines.Push("!defined(ATOMIC_PLATFORM_WINDOWS)");
+		{
+			if (language == "csharp")
+			{
+				if (!defines.Contains("!ATOMIC_DESKTOP"))
+					defines.Push("!ATOMIC_DESKTOP");
+			}
+			else
+			{
+				defines.Push("!defined(ATOMIC_PLATFORM_WINDOWS)");
+			}
+			
+		}
 		else if (platform == "macosx")
-			defines.Push("!defined(ATOMIC_PLATFORM_OSX)");
+		{
+			if (language == "csharp")
+			{
+				if (!defines.Contains("!ATOMIC_DESKTOP"))
+					defines.Push("!ATOMIC_DESKTOP");
+			}
+			else
+			{
+				defines.Push("!defined(ATOMIC_PLATFORM_OSX)");
+			}
+		}
 		else if (platform == "linux")
-			defines.Push("!defined(ATOMIC_PLATFORM_LINUX)");
+		{
+			if (language == "csharp")
+			{
+				if (!defines.Contains("!ATOMIC_DESKTOP"))
+					defines.Push("!ATOMIC_DESKTOP");
+			}
+			else
+			{
+				defines.Push("!defined(ATOMIC_PLATFORM_LINUX)");
+			}
+		}
 		else if (platform == "android")
-			defines.Push("!defined(ATOMIC_PLATFORM_ANDROID)");
+		{
+			if (language == "csharp")
+			{
+				defines.Push("!ATOMIC_ANDROID");
+			}
+			else
+			{
+				defines.Push("!defined(ATOMIC_PLATFORM_ANDROID)");
+			}
+		}
 		else if (platform == "ios")
-			defines.Push("!defined(ATOMIC_PLATFORM_IOS)");
+		{
+			if (language == "csharp")
+			{
+				defines.Push("!ATOMIC_IOS");
+			}
+			else
+			{
+				defines.Push("!defined(ATOMIC_PLATFORM_IOS)");
+			}
+		}
 		else if (platform == "web")
-			defines.Push("!defined(ATOMIC_PLATFORM_WEB)");
+		{
+			if (language == "csharp")
+			{
+				defines.Push("!ATOMIC_WEB");
+			}
+			else
+			{
+				defines.Push("!defined(ATOMIC_PLATFORM_WEB)");
+			}
+		}
 		else
 		{
 			ATOMIC_LOGERRORF("Unknown package platform: %s", platform.CString());

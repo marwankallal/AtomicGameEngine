@@ -74,6 +74,8 @@ namespace Atomic
     void NETAtomicPlayer::Setup()
     {
         PlayerApp::Setup();
+
+		engineParameters_["ResourcePaths"] = "AtomicResources"; 
     }
 
     int NETAtomicPlayer::Initialize()

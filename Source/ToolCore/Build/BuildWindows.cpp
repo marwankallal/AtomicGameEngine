@@ -198,6 +198,9 @@ void BuildWindows::Build(const String& buildPath)
     if (buildFailed_)
         return;
 
+	if (resourcesOnly_)
+		return;
+
     if (!BuildCreateDirectory(buildPath_ + "/Settings"))
         return;
 

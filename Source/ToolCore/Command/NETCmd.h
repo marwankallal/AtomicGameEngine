@@ -46,7 +46,9 @@ public:
 
     void Run();
 
-    bool RequiresProjectLoad() { return false; }
+    bool RequiresProjectLoad() { return requiresProjectLoad_; }
+
+	const String& GetProjectPath() const { return projectPath_; }
 
 private:
 
@@ -54,8 +56,8 @@ private:
 
     String command_;
 
-    // genproject command
-    String projectFile_;
+    // genresources command
+    String projectPath_;
 
     // parse command
     String assemblyPath_;
@@ -64,6 +66,8 @@ private:
     String solutionPath_;
     String platform_;
     String configuration_;
+
+	bool requiresProjectLoad_;
 
     WeakPtr<AtomicNETService> netService_;
 

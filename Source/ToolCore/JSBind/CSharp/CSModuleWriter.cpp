@@ -416,10 +416,23 @@ void CSModuleWriter::GenerateManagedModuleClass(String& sourceOut)
 
         const char* className = klass->GetName().CString();
 
+		String classGuard = module_->GetClassDefineGuard(classes[i]->GetNativeName(), "csharp");
+
+		if (classGuard.Length())
+		{
+			source += ToString("\n%s\n", classGuard.CString());
+		}
+
         line = ToString("new NativeType(%s.csb_%s_%s_GetClassIDStatic (), ", className, package->GetName().CString(), className);
         line += ToString("typeof(%s), (IntPtr x) => { return new %s (x); } );\n",className, className);
 
         source += IndentLine(line);
+
+		if (classGuard.Length())
+		{
+			source += ToString("#endif\n", classGuard.CString());
+		}
+
 
     }
 
