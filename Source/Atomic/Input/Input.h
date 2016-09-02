@@ -76,8 +76,13 @@ struct TouchState
 };
 
 /// %Input state for a joystick.
-struct JoystickState
+// ATOMIC BEGIN
+class JoystickState : public RefCounted
 {
+	ATOMIC_REFCOUNTED(JoystickState)
+// ATOMIC END
+
+public:
     /// Construct with defaults.
     JoystickState() :
         joystick_(0), joystickID_(0), controller_(0),
@@ -420,8 +425,12 @@ private:
     HashMap<int, int> touchIDMap_;
     /// String for text input.
     String textInput_;
+
+// ATOMIC BEGIN
     /// Opened joysticks.
-    HashMap<SDL_JoystickID, JoystickState> joysticks_;
+    HashMap<SDL_JoystickID, SharedPtr<JoystickState>> joysticks_;
+// ATOMIC END
+
     /// Mouse buttons' down state.
     unsigned mouseButtonDown_;
     /// Mouse buttons' pressed state.
