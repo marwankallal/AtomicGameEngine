@@ -5,6 +5,8 @@ using Android.OS;
 using Android.Views;
 using AtomicEngine;
 
+using AtomicBlaster;
+
 namespace AtomicPlayer
 {
 	[Activity(Label = "AtomicPlayer", MainLauncher = true,
@@ -17,7 +19,7 @@ namespace AtomicPlayer
 		{
 			base.OnCreate(bundle);
 			var mLayout = new AbsoluteLayout(this);
-            var surface = AndroidSDLSurface.CreateSurface(this);
+            var surface = AndroidSDLSurface.CreateSurface(this, false, typeof(GameRoot));
 			mLayout.AddView(surface);
 			SetContentView(mLayout);
 		}

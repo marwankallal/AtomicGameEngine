@@ -72,11 +72,14 @@ namespace AtomicEngine
 
         public bool IsAlive => SDLActivity.MIsSurfaceReady;
 
+        static Type appDelegateType;
+
         /// <summary>
         /// Creates a view (SurfaceView) that can be added anywhere
         /// </summary>
-        public static SDLSurface CreateSurface(Activity activity, bool finishActivtiyOnExit = false)
+        public static SDLSurface CreateSurface(Activity activity, bool finishActivtiyOnExit = false, Type appDelegateType = null)
         {
+            AndroidSDLSurface.appDelegateType = appDelegateType;
             var surface = SDLActivity.CreateSurface(activity);
             SetSDLEntryCallback(finishActivtiyOnExit, surface);
             return surface;
@@ -133,20 +136,7 @@ namespace AtomicEngine
             SDLActivity.FinishActivityOnNativeExit = finishActivityOnExit;
 
             RegisterSDLEntryCallback( () => {
-
-                // Create the Application
-                var app = NETAtomicPlayer.Create(new string[0]);
-
-                // Managed code in charge of main loop
-                while (app.RunFrame())
-                {
-
-                }
-
-                // Shut 'er down
-                app.Shutdown();
-
-                return 0;
+                return Application.Run(appDelegateType, new string[0]);
             });
         }
     }

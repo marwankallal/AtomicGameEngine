@@ -84,6 +84,7 @@ namespace ToolCore
 
 		bool GenerateStandard();
 
+		bool GetRelativeProjectPath(const String& fromPath, const String& toPath, String& output);
 
         bool CreateProjectFolder(const String& path);
 

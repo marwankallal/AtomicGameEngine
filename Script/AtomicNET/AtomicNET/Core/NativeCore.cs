@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Linq;
+using static System.Reflection.IntrospectionExtensions;
 
 namespace AtomicEngine
 {
@@ -295,6 +296,17 @@ namespace AtomicEngine
                 return true;
 
             return false;
+        }
+
+        public static Type GetNativeAncestorType(Type type)
+        {
+            Type ancestorType = type;
+            do
+            {
+                ancestorType = ancestorType.GetTypeInfo().BaseType;
+            } while (ancestorType != null && !IsNativeType(ancestorType));
+
+            return ancestorType;
         }
 
         static public IntPtr NativeContructorOverride

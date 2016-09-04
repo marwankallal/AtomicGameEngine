@@ -426,28 +426,21 @@ namespace ToolCore
 		pgroup.CreateChild("ConsolePause").SetValue("false");
 		pgroup.CreateChild("AllowUnsafeBlocks").SetValue("true");
 
-		if (GetIsPCL())
+		if (SupportsDesktop())
 		{
-			pgroup.CreateChild("DebugType").SetValue("none");
+			pgroup.CreateChild("DebugType").SetValue(GetIsPCL() ? "pdbonly": "full");
+			pgroup.CreateChild("PlatformTarget").SetValue("x64");
 		}
 		else
 		{
-			if (SupportsDesktop())
-			{
-				pgroup.CreateChild("DebugType").SetValue("full");
-				pgroup.CreateChild("PlatformTarget").SetValue("x64");
-			}
-			else
-			{
-				pgroup.CreateChild("DebugType").SetValue("pdbonly");
+			pgroup.CreateChild("DebugType").SetValue("pdbonly");
 
-				if (SupportsPlatform("android"))
+			if (SupportsPlatform("android"))
+			{
+				if (outputType_.ToLower() != "library")
 				{
-					if (outputType_.ToLower() != "library")
-					{
-						pgroup.CreateChild("AndroidUseSharedRuntime").SetValue("False");
-						pgroup.CreateChild("AndroidLinkMode").SetValue("SdkOnly");
-					}
+					pgroup.CreateChild("AndroidUseSharedRuntime").SetValue("False");
+					pgroup.CreateChild("AndroidLinkMode").SetValue("SdkOnly");
 				}
 			}
 		}
@@ -463,17 +456,6 @@ namespace ToolCore
 		XMLElement pgroup = projectRoot.CreateChild("PropertyGroup");
 		pgroup.SetAttribute("Condition", " '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ");
 
-		if (GetIsPCL())
-		{
-			pgroup.CreateChild("DebugSymbols").SetValue("false");
-			pgroup.CreateChild("DebugType").SetValue("none");
-		}
-		else
-		{
-			pgroup.CreateChild("DebugSymbols").SetValue("true");
-			pgroup.CreateChild("DebugType").SetValue("full");
-
-		}
 		pgroup.CreateChild("Optimize").SetValue("false");
 		pgroup.CreateChild("OutputPath").SetValue(assemblyOutputPath_);
 
@@ -587,8 +569,36 @@ namespace ToolCore
 			nativeLibrary.CreateChild("Link").SetValue("Libs\\armeabi-v7a\\libAtomicNETNative.so");
 
 			XMLElement resourceGroup = projectRoot.CreateChild("ItemGroup");
-			resourceGroup.CreateChild("AndroidResource").SetAttribute("Include", "Resources\\values\\Strings.xml");
-			resourceGroup.CreateChild("AndroidResource").SetAttribute("Include", "Resources\\drawable\\Icon.png");
+
+			String relativePath;
+
+			if (GetRelativeProjectPath("$ATOMIC_PROJECT_ROOT$/Project/AtomicNET/Platforms/Android/Resources/values/Strings.xml", projectPath_, relativePath))
+			{
+				relativePath.Replace("/", "\\");
+
+				XMLElement strings = resourceGroup.CreateChild("AndroidResource");
+				strings.SetAttribute("Include", relativePath);
+				// Link has to exist for manifest to find resource!
+				strings.CreateChild("Link").SetValue("Resources\\values\\Strings.xml");
+			}
+			else
+			{
+				ATOMIC_LOGERROR("Unabled to get relative path for Strings.xml");
+			}
+
+			if (GetRelativeProjectPath("$ATOMIC_PROJECT_ROOT$/Project/AtomicNET/Platforms/Android/Resources/drawable/icon.png", projectPath_, relativePath))
+			{
+				relativePath.Replace("/", "\\");
+				XMLElement icon = resourceGroup.CreateChild("AndroidResource");
+				icon.SetAttribute("Include", relativePath);
+				// Link has to exist for manifest to find resource!
+				icon.CreateChild("Link").SetValue("Resources\\drawable\\icon.png");
+			}
+			else
+			{
+				ATOMIC_LOGERROR("Unabled to get relative path for Icon.png");
+			}
+
 		}
 
 	}
@@ -618,6 +628,29 @@ namespace ToolCore
 
 		SharedPtr<File> output(new File(context_, projectPath_ + "Properties/AssemblyInfo.cs", FILE_WRITE));
 		output->Write(info.CString(), info.Length());
+
+	}
+
+	bool NETCSProject::GetRelativeProjectPath(const String& fromPath, const String& toPath, String& output)
+	{
+		String path = fromPath;
+
+		ReplacePathStrings(path);
+
+		String relativePath;
+
+		if (GetRelativePath(projectPath_, GetPath(path), relativePath))
+		{
+			path = relativePath + GetFileName(path) + GetExtension(path);
+
+			output = path;
+
+			return true;
+		}
+
+		output = fromPath;
+
+		return false;
 
 	}
 
@@ -678,8 +711,7 @@ namespace ToolCore
 				{
 					pgroup.CreateChild("ProjectTypeGuids").SetValue("{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}");
 				}
-
-				pgroup.CreateChild("AndroidResgenFile").SetValue("Resources\\Resource.Designer.cs");
+				
 				pgroup.CreateChild("AndroidUseLatestPlatformSdk").SetValue("True");
 
 				if (!androidApplication_)
@@ -693,7 +725,54 @@ namespace ToolCore
 					// Android Application
 
 					pgroup.CreateChild("AndroidApplication").SetValue("true");
+
+					// AndroidManifest.xml must reside in Properties/AndroidManifest.xml, which introduces sync issues :/
+
 					pgroup.CreateChild("AndroidManifest").SetValue("Properties\\AndroidManifest.xml");
+
+					FileSystem* fileSystem = GetSubsystem<FileSystem>();
+
+					String manifestSourceFile = "$ATOMIC_PROJECT_ROOT$/Project/AtomicNET/Platforms/Android/Properties/AndroidManifest.xml";
+					ReplacePathStrings(manifestSourceFile);
+
+					if (fileSystem->FileExists(manifestSourceFile))
+					{
+						String manifestDest = projectPath_ + "Properties/";
+
+						if (!fileSystem->DirExists(manifestDest))
+						{
+							fileSystem->CreateDirs(projectGen_->GetAtomicProjectPath(), ToString("AtomicNET/Solution/%s/Properties/", name_.CString()));
+						}
+
+						if (fileSystem->DirExists(manifestDest))
+						{
+							if (!fileSystem->Copy(manifestSourceFile, manifestDest + "AndroidManifest.xml"))
+							{
+								ATOMIC_LOGERRORF("Unable to copy AndroidManifest from %s to %s", manifestSourceFile.CString(), manifestDest.CString());
+							}
+						}
+						else
+						{
+							ATOMIC_LOGERRORF("Unable to create folder %s for AndroidManifest.xml", manifestDest.CString());
+						}
+						
+					}
+					else
+					{
+						ATOMIC_LOGERROR("No AndroidManifest.xml, project will not deploy");
+					}
+
+					String relativePath;
+					if (GetRelativeProjectPath("$ATOMIC_PROJECT_ROOT$/Project/AtomicNET/Platforms/Android/Resources/Resource.Designer.cs", projectPath_, relativePath))
+					{
+						relativePath.Replace("/", "\\");
+						pgroup.CreateChild("AndroidResgenFile").SetValue(relativePath);
+					}
+					else
+					{
+						ATOMIC_LOGERROR("Unabled to get relative path for AndroidResgenFile");
+					}
+					
 					pgroup.CreateChild("GenerateSerializationAssemblies").SetValue("Off");
 				}
 

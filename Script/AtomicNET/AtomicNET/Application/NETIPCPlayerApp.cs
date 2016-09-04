@@ -24,8 +24,6 @@ namespace AtomicEngine
 
             RegisterSubsystems();
             
-            ExecuteAtomicMain(args);
-
             return app;
         }
 
